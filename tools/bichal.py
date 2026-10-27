@@ -42,9 +42,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "publishing"))
 
 import bichal_ci  # noqa: E402
 import bichal_sync  # noqa: E402
-from bichal_mod import BUILD_LOGIC, MOD_TOML, BichalError, load_dotenv, load_mod, registry  # noqa: E402
+from bichal_mod import BUILD_LOGIC, DEFAULT_TOKEN, MOD_TOML, BichalError, load_dotenv, load_mod, registry  # noqa: E402
 
-SECRETS = ("MODRINTH_TOKEN", "CURSEFORGE_TOKEN", "BICHAL_SYNC_TOKEN")
+SECRETS = ("MODRINTH_TOKEN", "CURSEFORGE_TOKEN", "BICHAL_SYNC_TOKEN", "PANZER_SYNC_TOKEN")
 
 
 def resolve_mods(names: list[str], all_mods: bool) -> list[Path]:
@@ -128,9 +128,11 @@ def cmd_mods(args) -> int:
                 state = "in sync" if not changes else f"{len(changes)} file(s) differ"
             except BichalError as e:
                 state = f"error: {e}"
-        rows.append({"key": m.key, "repo": m.repo, "private": m.private, "path": str(m.path or ""), "state": state})
+        rows.append({"key": m.key, "repo": m.repo, "private": m.private, "token": m.token,
+                     "path": str(m.path or ""), "state": state})
     if args.json:
-        print(json.dumps([{"key": r["key"], "repo": r["repo"], "private": r["private"]} for r in rows]))
+        print(json.dumps([{"key": r["key"], "repo": r["repo"], "private": r["private"], "token": r["token"]}
+                          for r in rows]))
         return 0
     for r in rows:
         print(f"{r['key']:10} {r['repo']:28} {r['state']:20} {r['path']}")
@@ -204,13 +206,13 @@ def cmd_secrets(args) -> int:
     values = {k: os.environ[k] for k in SECRETS if os.environ.get(k)}
     if not values:
         raise BichalError(f"none of {', '.join(SECRETS)} is set (environment or .env)")
-    # BICHAL_SYNC_TOKEN can push to every mod, so only bichal-build-logic (the
-    # Mods workflow) gets it; the publishing tokens go wherever releases run.
+    # The sync tokens can push to their mods, so only bichal-build-logic (the
+    # Mods workflow) gets them; the publishing tokens go wherever releases run.
     build_logic = "bichal/BichalBuildLogic"
     mods = sorted({m.repo for m in registry()})
     plan = []
     for key, value in values.items():
-        if key == "BICHAL_SYNC_TOKEN":
+        if key.endswith("_SYNC_TOKEN"):
             plan.append((key, value, ["--repo", build_logic]))
         elif args.org:
             plan.append((key, value, ["--org", args.org, "--visibility", "all"]))
@@ -243,15 +245,30 @@ def cmd_doctor(args) -> int:
 
 
 def cmd_token(args) -> int:
+    """Checks each sync token against the mods that use it (mods.toml `token`)."""
     import bichal_token
-    raw = os.environ.get("BICHAL_SYNC_TOKEN", "")
-    if not raw.strip():
-        result = bichal_token.Report(["BICHAL_SYNC_TOKEN is not set (environment, .env, or the repository secret "
-                                      "in CI).", "", "Result: the token is NOT ready (see .env.example)."], False, [])
-    else:
-        repos = sorted({m.repo for m in select_mods(args.select)})
-        result = bichal_token.check(raw, repos, need_write=not args.read_only)
-    report = "\n".join(result.lines)
+    mods = select_mods(args.select)
+    names = sorted({m.token for m in mods}) or [DEFAULT_TOKEN]
+    lines, warnings, failed = [], [], []
+    ok, usable = True, False
+    for name in names:
+        repos = sorted({m.repo for m in mods if m.token == name})
+        raw = os.environ.get(name, "")
+        if not raw.strip():
+            report = bichal_token.Report([f"{name} is not set (environment, .env, or the repository secret in CI).",
+                                          "", "Result: the token is NOT ready (see .env.example)."],
+                                         ok=False, warnings=[], usable=False, failed=[])
+        else:
+            report = bichal_token.check(raw, repos, need_write=not args.read_only)
+        if len(names) > 1:
+            lines += [f"{name} (for {', '.join(repos)})", ""]
+        lines += report.lines + [""]
+        warnings += report.warnings
+        failed += report.failed
+        ok &= report.ok
+        usable |= report.usable
+    result = bichal_token.Report(lines, ok=ok, warnings=warnings, usable=usable, failed=failed)
+    report = "\n".join(result.lines).rstrip()
     print(report)
     in_ci = bool(os.environ.get("GITHUB_ACTIONS"))
     if in_ci:
@@ -259,7 +276,7 @@ def cmd_token(args) -> int:
             print(f"::warning::{w}")
     if args.summary:
         with open(args.summary, "a", encoding="utf-8") as f:
-            f.write("## BICHAL_SYNC_TOKEN\n\n" + report + "\n")
+            f.write("## Sync tokens\n\n" + report + "\n")
     if args.gate and result.usable:
         # Only a token that works nowhere stops the run; a repository it cannot
         # handle is reported here and fails its own job, not everyone's.

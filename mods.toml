@@ -5,6 +5,9 @@
 #   folder: local checkout next to bichal-build-logic (default: the repository
 #           name; BICHAL_MODS_DIR changes the parent folder)
 #   private: true for private repositories (only readable with BICHAL_SYNC_TOKEN)
+#   token:  the secret that reads and pushes this mod. Default BICHAL_SYNC_TOKEN;
+#           a repository owned by another account or organization needs its own
+#           token (for example PANZER_SYNC_TOKEN for PanzerDevOrg repositories).
 
 [mods.celeris]
 repo = "bichal/Celeris"
@@ -19,6 +22,7 @@ private = true
 [mods.dice_and_delish]
 repo = "PanzerDevOrg/DiceAndDelish"
 folder = "DiceAndDelish"
+token = "PANZER_SYNC_TOKEN"
 
 [mods.bplb]
 repo = "bichal/BetterPlayerLocatorBar"

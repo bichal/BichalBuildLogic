@@ -8,7 +8,10 @@
 import re
 import unittest
 
-from bichal_mod import BUILD_LOGIC, catalog_version, read_toml
+import tempfile
+from pathlib import Path
+
+from bichal_mod import BUILD_LOGIC, BichalError, catalog_version, read_toml, registry
 from bichal_sync import same_content
 
 SETTINGS_SCRIPT = BUILD_LOGIC / "shared" / "mod" / "settings.gradle.kts"
@@ -49,6 +52,18 @@ class LayoutTest(unittest.TestCase):
         self.assertTrue(same_content(b"a\nb\n", b"a\nb\n"))
         self.assertFalse(same_content(b"a\nb\n", b"a\nc\n"))
         self.assertFalse(same_content(None, b"a\n"))
+
+    def test_each_mod_names_its_token(self):
+        tokens = {m.key: m.token for m in registry()}
+        self.assertEqual(tokens["dice_and_delish"], "PANZER_SYNC_TOKEN")
+        self.assertEqual(tokens["celeris"], "BICHAL_SYNC_TOKEN")
+        self.assertEqual(tokens["velox"], "BICHAL_SYNC_TOKEN")
+
+    def test_token_name_must_look_like_a_sync_token(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "mods.toml").write_text('[mods.bad]\nrepo = "a/b"\ntoken = "not a secret"\n', encoding="utf-8")
+            with self.assertRaises(BichalError):
+                registry(Path(tmp))
 
     def test_no_hardcoded_sibling_folder_in_kotlin(self):
         for path in KOTLIN_SOURCES.rglob("*.kt"):
