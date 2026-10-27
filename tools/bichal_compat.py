@@ -43,7 +43,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-from bichal_mod import Mod, BichalError, java_env, java_for, java_home  # noqa: F401 (re-exported)
+from bichal_mod import Mod, BichalError, catalog_version, java_env, java_for, java_home  # noqa: F401 (re-exported)
 import bichal_versions
 
 NEOFORGE_MAVEN = "https://maven.neoforged.net/releases/net/neoforged/neoforge"
@@ -226,10 +226,7 @@ neoForge {
 
 
 def moddev_version() -> str:
-    m = re.search(r'^moddev\s*=\s*"([^"]+)"', (BUILD_LOGIC / "common.stonecutter.properties.toml").read_text(), re.M)
-    if not m:
-        raise BichalError("no [plugins] moddev in the common TOML")
-    return m.group(1)
+    return catalog_version("moddev")
 
 
 def run_client(mod: Mod, version: str, target: dict, work: Path) -> tuple[bool, list[str]]:

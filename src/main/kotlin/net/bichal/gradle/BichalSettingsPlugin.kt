@@ -9,11 +9,11 @@ import java.io.File
  * `plugins { id("bichal.settings") }`: everything a mod's settings.gradle.kts
  * used to do by hand, so that file is a few identical lines in every mod.
  *
- * 1. Merges `../bichal-build-logic/common.stonecutter.properties.toml` with the
+ * 1. Merges the build-logic checkout's `common.stonecutter.properties.toml` with the
  *    mod's `mod.stonecutter.properties.toml` into `stonecutter.properties.toml`
  *    ([TomlMerge], whole tables win).
- * 2. Applies Stonecutter and the Foojay toolchain resolver (versions pinned by
- *    `[plugins]` in the common TOML, through this build's dependencies).
+ * 2. Applies Stonecutter and the Foojay toolchain resolver (versions pinned in
+ *    `gradle/libs.versions.toml`, through this build's dependencies).
  * 3. Resolves the Minecraft versions to build from `[stonecutter]`:
  *    `versions = [...]`, or `profile = "<name>"` from `[stonecutter.profiles.<name>]`
  *    plus optional `extra_versions` / `exclude_versions`; then
@@ -36,13 +36,15 @@ class BichalSettingsPlugin : Plugin<Settings> {
 
     override fun apply(settings: Settings) {
         val rootDir = settings.rootDir
-        val commonToml = File(rootDir, "../bichal-build-logic/common.stonecutter.properties.toml")
+        // Set by the shared settings.gradle.kts, which finds the build-logic folder under
+        // any accepted name (see BuildLogicNames) before this plugin runs.
+        val buildLogicDir = settings.extensions.extraProperties.get("bichal.buildLogicDir") as File
+        val commonToml = File(buildLogicDir, "common.stonecutter.properties.toml")
         val modToml = File(rootDir, "mod.stonecutter.properties.toml")
         val mergedToml = File(rootDir, "stonecutter.properties.toml")
 
         if (!commonToml.exists()) {
-            error("[bichal.settings] '${commonToml.normalize().path}' was not found. Clone BichalBuildLogic next to " +
-                    "this project as 'bichal-build-logic'.")
+            error("[bichal.settings] '${commonToml.normalize().path}' was not found in the build-logic checkout.")
         }
         if (!modToml.exists()) {
             error("[bichal.settings] 'mod.stonecutter.properties.toml' was not found in '${rootDir.path}'.")

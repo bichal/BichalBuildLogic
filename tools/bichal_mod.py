@@ -71,6 +71,17 @@ def read_toml(path: Path) -> dict:
         return tomllib.load(f)
 
 
+CATALOG = Path("gradle") / "libs.versions.toml"
+
+
+def catalog_version(key: str, build_logic: Path = BUILD_LOGIC) -> str:
+    """A `[versions]` entry of bichal-build-logic's Gradle version catalog (`loom`, `moddev`, ...)."""
+    versions = read_toml(build_logic / CATALOG).get("versions", {})
+    if key not in versions:
+        raise BichalError(f"no version '{key}' in {CATALOG} (bichal-build-logic)")
+    return versions[key]
+
+
 VERSION_KEY = re.compile(r"^\d+(\.\d+)+(-[\w.]+)?$")
 
 
