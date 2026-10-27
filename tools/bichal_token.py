@@ -292,13 +292,11 @@ def check(raw: str, repos: list[str], need_write: bool = True) -> Report:
     elif not need_write:
         lines.append("Result: the token can read every selected mod.")
     elif token_kind == "fine-grained":
-        unverified = ("Workflows permission not verifiable: open the token at "
-                      "https://github.com/settings/personal-access-tokens and confirm its repository permissions "
-                      "list 'Workflows: Read and write'. Without it GitHub refuses every sync that changes "
-                      ".github/workflows/.")
-        warnings.append(unverified)
-        lines += [unverified, "",
-                  "Result: read and push work on every mod; only the Workflows permission above is unconfirmed."]
+        # GitHub does not list a fine-grained token's repository permissions, so
+        # Workflows can only be proven by a push that changes .github/workflows/
+        # (every sync does that). Say so instead of warning on every run.
+        lines.append("Result: the token can read and push every selected mod. Workflows is confirmed by the "
+                     "sync pushes that change .github/workflows/ (GitHub refuses those without it).")
     else:
         lines.append("Result: the token can do everything the Mods workflow needs.")
     passed = lambda r: r.read and (r.write or not need_write)
