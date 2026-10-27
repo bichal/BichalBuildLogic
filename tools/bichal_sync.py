@@ -71,6 +71,12 @@ def _read(path: Path) -> bytes | None:
     return path.read_bytes() if path.is_file() else None
 
 
+def same_content(old: bytes | None, new: bytes) -> bool:
+    """Equal once line endings are ignored: a Windows checkout turns LF into CRLF, which is
+    not a change to the file (the repository stores LF)."""
+    return old is not None and old.replace(b"\r\n", b"\n") == new.replace(b"\r\n", b"\n")
+
+
 def keep_lines(template: str, current: str | None, patterns: list[str]) -> str:
     """Lines of `template` matching one of `patterns` take the mod's current
     line matching the same pattern (e.g. `stonecutter active "<version>"`)."""
@@ -182,7 +188,7 @@ def plan(mod: Mod, build_logic: Path = BUILD_LOGIC) -> SyncPlan:
                 changes.append(Change(path, "delete", old=old))
             continue
         exec_differs = executable and os.name != "nt" and target.is_file() and not os.access(target, os.X_OK)
-        if old != content or exec_differs:
+        if not same_content(old, content) or exec_differs:
             changes.append(Change(path, "create" if old is None else "update", content, executable, old))
     return SyncPlan(mod, changes, notes)
 
