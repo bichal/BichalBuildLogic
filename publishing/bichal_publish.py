@@ -233,7 +233,7 @@ def load_config(root: Path) -> ModConfig:
         platforms=platforms,
         dependencies=dependencies,
         builds=builds,
-        branch=publish.get("branch", "master"),
+        branch=publish.get("branch", "main"),
         # Project links on Modrinth; "" leaves one out (a private repository has none to show).
         source_url=str(publish.get("source_url", f"https://github.com/{github}")),
         issues_url=str(publish.get("issues_url", mod.get("issues", ""))),

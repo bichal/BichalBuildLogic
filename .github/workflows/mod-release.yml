@@ -85,7 +85,7 @@ jobs:
           if [ "${GITHUB_REF_TYPE}" = tag ]; then echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"; fi
 
       # Offline checks always; online checks (game versions known to each site) when tokens exist.
-      # A dry run reports problems without failing the build (e.g. master before the changelog exists).
+      # A dry run reports problems without failing the build (e.g. main before the changelog exists).
       - name: Plan and check
         continue-on-error: ${{ inputs.dry-run }}
         env:

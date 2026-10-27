@@ -15,7 +15,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     tags: ["v*"]
     # Docs-only commits rebuild nothing (path filters never apply to tags);
     # descriptions.yml handles README changes.

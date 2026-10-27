@@ -118,9 +118,9 @@ class Description(unittest.TestCase):
     def test_published_markdown(self):
         md = pp.published_markdown(README, self.cfg)
         self.assertNotIn("Building", md)
-        self.assertIn("https://raw.githubusercontent.com/bichal/Demo/master/docs/media/banner.png", md)
-        self.assertIn("https://raw.githubusercontent.com/bichal/Demo/master/docs/media/shot.png", md)
-        self.assertIn("[the license](https://github.com/bichal/Demo/blob/master/LICENSE)", md)
+        self.assertIn("https://raw.githubusercontent.com/bichal/Demo/main/docs/media/banner.png", md)
+        self.assertIn("https://raw.githubusercontent.com/bichal/Demo/main/docs/media/shot.png", md)
+        self.assertIn("[the license](https://github.com/bichal/Demo/blob/main/LICENSE)", md)
         self.assertIn("[docs](https://example.com)", md)
 
     def test_bichal_markers_dropped_content_kept(self):
@@ -145,7 +145,7 @@ class Description(unittest.TestCase):
         h = pp.curseforge_html(pp.published_markdown(README, self.cfg))
         self.assertNotIn("<div", h)
         self.assertNotIn("width:50%", h)
-        self.assertIn('<img alt="Shot" src="https://raw.githubusercontent.com/bichal/Demo/master/docs/media/shot.png"/>', h)
+        self.assertIn('<img alt="Shot" src="https://raw.githubusercontent.com/bichal/Demo/main/docs/media/shot.png"/>', h)
         self.assertIn('<th style="text-align:center">', h)
         self.assertIn('rel="noopener nofollow"', h)
         self.assertIn("<table>", h)

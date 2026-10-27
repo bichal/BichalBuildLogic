@@ -4,7 +4,7 @@
 # README.md is the description on Modrinth (pushed by the API) and CurseForge
 # (curseforge.html in the "descriptions" artifact, pasted by hand: CurseForge
 # has no description API).
-#   push to master (README/media/TOML changed): render only, as a private check
+#   push to main (README/media/TOML changed): render only, as a private check
 #   v* tag: update Modrinth, so the page changes together with the release
 #   manual run: dry run by default; untick to update Modrinth now
 name: Sync descriptions
@@ -17,7 +17,7 @@ on:
         type: boolean
         default: true
   push:
-    branches: [master]
+    branches: [main]
     tags: ["v*"]
     paths: ["README.md", "docs/media/**", "mod.stonecutter.properties.toml"]
 

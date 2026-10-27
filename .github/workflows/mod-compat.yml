@@ -15,7 +15,7 @@ on:
         required: true
       build-logic-ref:
         type: string
-        default: master
+        default: main
       versions:
         description: Only these build versions (comma-separated)
         type: string
