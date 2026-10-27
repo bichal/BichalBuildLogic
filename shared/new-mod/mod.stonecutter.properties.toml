@@ -1,5 +1,5 @@
 # {{name}} build configuration. Merged at configuration time with
-# ../panzer-build-logic/common.stonecutter.properties.toml (panzer.settings):
+# ../bichal-build-logic/common.stonecutter.properties.toml (bichal.settings):
 # any table declared here replaces the common table of the same name.
 # Licenses come from [legal] in the common TOML.
 
@@ -15,7 +15,7 @@ side = "BOTH"
 issues = "https://github.com/{{owner}}/{{repo}}/issues"
 banner = ""
 
-# Releases and descriptions (panzer-build-logic/publishing). README.md is the
+# Releases and descriptions (bichal-build-logic/publishing). README.md is the
 # description on GitHub, Modrinth and CurseForge. Add modrinth_id /
 # curseforge_id once the projects exist; until then releases go to GitHub only.
 [publish]

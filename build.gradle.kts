@@ -7,8 +7,8 @@ plugins {
 // "Two ways a mod can consume this repo"). When a mod uses the sibling-folder
 // includeBuild path instead, Gradle substitutes the plugin directly from source and
 // never looks at these coordinates.
-group = "org.panzer.panzer"
-version = providers.gradleProperty("panzerBuildLogicVersion").getOrElse("0.0.0-local")
+group = "org.bichal.bichal"
+version = providers.gradleProperty("bichalBuildLogicVersion").getOrElse("0.0.0-local")
 
 repositories {
     gradlePluginPortal()
@@ -41,29 +41,29 @@ dependencies {
     implementation("com.google.code.gson:gson:2.14.0")
 }
 
-// Class-based plugins. panzer.settings is a settings plugin: a mod's
-// settings.gradle.kts applies it after includeBuild("../panzer-build-logic"),
+// Class-based plugins. bichal.settings is a settings plugin: a mod's
+// settings.gradle.kts applies it after includeBuild("../bichal-build-logic"),
 // which puts this build (and Stonecutter, ModDevGradle, Foojay) on the settings
 // classpath shared by every project of the mod.
 gradlePlugin {
     plugins {
-        register("panzerSettings") {
-            id = "panzer.settings"
-            implementationClass = "com.panzer.gradle.PanzerSettingsPlugin"
+        register("bichalSettings") {
+            id = "bichal.settings"
+            implementationClass = "net.bichal.gradle.BichalSettingsPlugin"
         }
-        register("panzerMod") {
-            id = "panzer.mod"
-            implementationClass = "com.panzer.gradle.PanzerModPlugin"
+        register("bichalMod") {
+            id = "bichal.mod"
+            implementationClass = "net.bichal.gradle.BichalModPlugin"
         }
-        register("panzerStonecutter") {
-            id = "panzer.stonecutter"
-            implementationClass = "com.panzer.gradle.PanzerStonecutterPlugin"
+        register("bichalStonecutter") {
+            id = "bichal.stonecutter"
+            implementationClass = "net.bichal.gradle.BichalStonecutterPlugin"
         }
     }
 }
 
 // `kotlin-dsl` auto-registers every `src/main/kotlin/*.gradle.kts` precompiled script
-// plugin (panzer.neoforge-mod, panzer.neoforge-mod-example) as a real Gradle plugin,
+// plugin (bichal.neoforge-mod, bichal.neoforge-mod-example) as a real Gradle plugin,
 // markers included -- `maven-publish` just needs a `publishing {}` block to know where
 // to put them. Publishing goes to a plain directory, not a real Maven server: CI copies
 // that directory's contents onto the `gh-pages` branch (see

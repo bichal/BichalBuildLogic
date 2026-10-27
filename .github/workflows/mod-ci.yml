@@ -3,23 +3,23 @@ name: Mod CI (reusable)
 # The whole pipeline of every mod, configured by its mod.stonecutter.properties.toml
 # (each mod's .github/workflows/ci.yml only calls this):
 #
-#   plan     reads the TOML (tools/panzer.py ci plan): native build matrix, JDKs,
+#   plan     reads the TOML (tools/bichal.py ci plan): native build matrix, JDKs,
 #            dependencies built from source, Maven publishing; warns when the
-#            mod's shared files differ from panzer-build-logic (`panzer check`)
+#            mod's shared files differ from bichal-build-logic (`bichal check`)
 #   natives  every CMake-backed [natives.<name>] platform, built and self-tested
 #            on its own runner (ci_linux_script: all Linux platforms in one job,
 #            ci_prepare: run first, e.g. to vendor sources). Skipped when the
 #            native sources are unchanged since a build cached on master; a
 #            v* tag always builds them afresh.
 #   build    every Minecraft version with tests; universal, per-system and
-#            sources jars, verified (tools/panzer.py ci verify-jars)
+#            sources jars, verified (tools/bichal.py ci verify-jars)
 #   maven    v* tags with [publish] maven_pages = true: the mod's static Maven
 #            repository on its gh-pages branch
 #   release  mod-release.yml: GitHub release, Modrinth, CurseForge. A dry run
 #            with a private "release-preview" artifact on every push; real only
 #            on v* tags (unless a manual run keeps dry_run ticked)
 #
-# mod-repository lets panzer-build-logic build any mod from its own Actions tab
+# mod-repository lets bichal-build-logic build any mod from its own Actions tab
 # (.github/workflows/mods.yml); such runs never publish.
 on:
   workflow_call:
@@ -39,7 +39,7 @@ on:
         type: string
         default: ""
       build-logic-ref:
-        description: panzer-build-logic commit for the tools (default the commit of this workflow)
+        description: bichal-build-logic commit for the tools (default the commit of this workflow)
         type: string
         default: ""
       versions:
@@ -47,14 +47,14 @@ on:
         type: string
         default: ""
     # Passed by name from each mod's ci.yml (never `secrets: inherit`): the
-    # store tokens for the release job, and panzer-build-logic's own token
+    # store tokens for the release job, and bichal-build-logic's own token
     # when it builds a mod from its Actions tab.
     secrets:
       MODRINTH_TOKEN:
         required: false
       CURSEFORGE_TOKEN:
         required: false
-      PANZER_SYNC_TOKEN:
+      BICHAL_SYNC_TOKEN:
         required: false
 
 # Read-only unless a job says otherwise (maven, release).
@@ -62,7 +62,7 @@ permissions:
   contents: read
 
 env:
-  PANZER: panzer-build-logic/tools/panzer.py
+  BICHAL: bichal-build-logic/tools/bichal.py
 
 jobs:
   plan:
@@ -89,21 +89,21 @@ jobs:
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
-          token: ${{ inputs.mod-repository && secrets.PANZER_SYNC_TOKEN || github.token }}
+          token: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/PanzerBuildLogic
+          repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
-          path: panzer-build-logic
+          path: bichal-build-logic
           persist-credentials: false
 
       - name: Plan from mod.stonecutter.properties.toml
         id: plan
         env:
           VERSIONS: ${{ inputs.versions }}
-        run: python3 "$PANZER" ci plan --mod mod --github-output --versions "$VERSIONS"
+        run: python3 "$BICHAL" ci plan --mod mod --github-output --versions "$VERSIONS"
 
       # Publishing happens only for a v* tag of the mod's own repository, and
       # never when a manual run keeps dry_run ticked.
@@ -121,7 +121,7 @@ jobs:
 
       - name: Shared files up to date
         continue-on-error: true
-        run: python3 "$PANZER" check mod --ci
+        run: python3 "$BICHAL" check mod --ci
 
       # Native builds of these exact sources, if a run already cached them.
       # Never for a release tag: what it publishes is built from the tag.
@@ -151,7 +151,7 @@ jobs:
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
-          token: ${{ inputs.mod-repository && secrets.PANZER_SYNC_TOKEN || github.token }}
+          token: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
       # JNI headers for libraries that need them (JAVA_HOME/include).
@@ -212,24 +212,24 @@ jobs:
       run:
         working-directory: mod
     steps:
-      # settings.gradle.kts includeBuild()s ../panzer-build-logic, so the
+      # settings.gradle.kts includeBuild()s ../bichal-build-logic, so the
       # repositories sit side by side under the workspace.
       - uses: actions/checkout@v5
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
-          token: ${{ inputs.mod-repository && secrets.PANZER_SYNC_TOKEN || github.token }}
+          token: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/PanzerBuildLogic
+          repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
-          path: panzer-build-logic
+          path: bichal-build-logic
           persist-credentials: false
 
       - name: JDKs and Gradle caches
-        uses: ./panzer-build-logic/.github/actions/gradle-env
+        uses: ./bichal-build-logic/.github/actions/gradle-env
         with:
           java: ${{ needs.plan.outputs.java }}
           cache-key: ${{ needs.plan.outputs.cache-key }}
@@ -243,7 +243,7 @@ jobs:
         if: needs.plan.outputs.source-deps != '[]'
         env:
           DEPS: ${{ needs.plan.outputs.source-deps }}
-          TOKEN: ${{ inputs.mod-repository && secrets.PANZER_SYNC_TOKEN || github.token }}
+          TOKEN: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
         run: |
           set -euo pipefail
           TOKEN="$(printf '%s' "$TOKEN" | tr -d '[:space:]')"
@@ -267,7 +267,7 @@ jobs:
             # With its native libraries for this runner (CMake): a dependency's tests
             # may need them (Velox's parity check requires Celeris's native kernel).
             (cd "../dep-$id" && chmod +x gradlew && ./gradlew publishToMavenLocal -Pstonecutter.versions="$versions" \
-                -Ppanzer.native.build=true $GRADLE_JDKS -x test --no-watch-fs --stacktrace)
+                -Pbichal.native.build=true $GRADLE_JDKS -x test --no-watch-fs --stacktrace)
             echo "::endgroup::"
           done
 
@@ -324,12 +324,12 @@ jobs:
           wrap=()
           if [ "$DISPLAY_NEEDED" = true ]; then wrap=(xvfb-run -a -s "-screen 0 1280x720x24"); fi
           # --continue: every version builds and reports, not just the first to fail.
-          "${wrap[@]}" ./gradlew $TASKS -Ppanzer.native.strict=$STRICT $VERSIONS $GRADLE_JDKS --continue --no-watch-fs --stacktrace
+          "${wrap[@]}" ./gradlew $TASKS -Pbichal.native.strict=$STRICT $VERSIONS $GRADLE_JDKS --continue --no-watch-fs --stacktrace
 
       # Universal jar: every declared native and the legal files; per-system
       # jars: only their OS's natives (java: none); sources jar present.
       - name: Verify jars
-        run: python3 "../$PANZER" ci verify-jars --mod . ${{ needs.plan.outputs.strict-natives == 'true' && '--strict' || '' }}
+        run: python3 "../$BICHAL" ci verify-jars --mod . ${{ needs.plan.outputs.strict-natives == 'true' && '--strict' || '' }}
 
       - uses: actions/upload-artifact@v5
         with:
@@ -354,12 +354,12 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/PanzerBuildLogic
+          repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
-          path: panzer-build-logic
+          path: bichal-build-logic
           persist-credentials: false
       - name: JDKs and Gradle caches
-        uses: ./panzer-build-logic/.github/actions/gradle-env
+        uses: ./bichal-build-logic/.github/actions/gradle-env
         with:
           java: ${{ needs.plan.outputs.java }}
           cache-key: ${{ needs.plan.outputs.cache-key }}
@@ -380,7 +380,7 @@ jobs:
       - name: Publish every version to the staging Maven tree
         run: |
           chmod +x ./gradlew
-          ./gradlew publishAllPublicationsToGitHubPagesRepository -Ppanzer.native.strict=${{ needs.plan.outputs.strict-natives }} $GRADLE_JDKS --no-watch-fs --stacktrace
+          ./gradlew publishAllPublicationsToGitHubPagesRepository -Pbichal.native.strict=${{ needs.plan.outputs.strict-natives }} $GRADLE_JDKS --no-watch-fs --stacktrace
 
       - name: Publish static Maven repo to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
@@ -406,6 +406,6 @@ jobs:
     secrets:
       MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
       CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
-      PANZER_SYNC_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN }}
+      BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
     permissions:
       contents: write

@@ -7,4 +7,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "panzer-build-logic"
+rootProject.name = "bichal-build-logic"

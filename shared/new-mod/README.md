@@ -22,24 +22,24 @@
 
 ## Building
 
-Clone [PanzerBuildLogic](https://github.com/PanzerDevOrg/PanzerBuildLogic) next to {{name}} as `panzer-build-logic`:
+Clone [BichalBuildLogic](https://github.com/bichal/BichalBuildLogic) next to {{name}} as `bichal-build-logic`:
 
 ```bash
-git clone https://github.com/PanzerDevOrg/PanzerBuildLogic.git panzer-build-logic
+git clone https://github.com/bichal/BichalBuildLogic.git bichal-build-logic
 cd {{repo}} && ./gradlew buildAndCollect
 ```
 
 ## Releasing
 
 This README is also the description on Modrinth and CurseForge (everything outside `publish:off` blocks). Add
-`docs/changelogs/<version>.md`, set `version` under `[mod]`, then `panzer release {{id}} --push`.
+`docs/changelogs/<version>.md`, set `version` under `[mod]`, then `bichal release {{id}} --push`.
 
-<!-- panzer:license -->
-<!-- /panzer:license -->
+<!-- bichal:license -->
+<!-- /bichal:license -->
 
 <!-- publish:on -->
 
 ---
 
-<!-- panzer:footer -->
-<!-- /panzer:footer -->
+<!-- bichal:footer -->
+<!-- /bichal:footer -->

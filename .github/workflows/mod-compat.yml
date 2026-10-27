@@ -2,7 +2,7 @@ name: Mod compat (reusable)
 
 # Checks a mod's release jars on the other Minecraft versions they claim
 # (game_versions in its ["<version>"] blocks): one job per build version builds
-# its jar, then `panzer compat run` installs the NeoForge dedicated server of
+# its jar, then `bichal compat run` installs the NeoForge dedicated server of
 # every claimed version and runs the mod's own check there ([compat] in its
 # TOML). A version that fails must not be claimed. A client-only mod
 # ([compat] side = "client") is run in a game client of each version instead,
@@ -22,7 +22,7 @@ on:
         default: ""
 
 env:
-  PANZER: panzer-build-logic/tools/panzer.py
+  BICHAL: bichal-build-logic/tools/bichal.py
 
 jobs:
   plan:
@@ -36,21 +36,21 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: ${{ inputs.mod-repository }}
-          token: ${{ secrets.PANZER_SYNC_TOKEN || github.token }}
+          token: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/PanzerBuildLogic
+          repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref }}
-          path: panzer-build-logic
+          path: bichal-build-logic
           persist-credentials: false
       - id: ci
-        run: python3 "$PANZER" ci plan --mod mod --github-output > /dev/null
+        run: python3 "$BICHAL" ci plan --mod mod --github-output > /dev/null
       - id: compat
         env:
           VERSIONS: ${{ inputs.versions }}
-        run: python3 "$PANZER" compat plan --mod mod --versions "$VERSIONS" --github-output
+        run: python3 "$BICHAL" compat plan --mod mod --versions "$VERSIONS" --github-output
 
   check:
     needs: plan
@@ -68,17 +68,17 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: ${{ inputs.mod-repository }}
-          token: ${{ secrets.PANZER_SYNC_TOKEN || github.token }}
+          token: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/PanzerBuildLogic
+          repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref }}
-          path: panzer-build-logic
+          path: bichal-build-logic
           persist-credentials: false
       - name: JDKs and Gradle caches
-        uses: ./panzer-build-logic/.github/actions/gradle-env
+        uses: ./bichal-build-logic/.github/actions/gradle-env
         with:
           cache-key: ${{ needs.plan.outputs.cache-key }}
 
@@ -86,7 +86,7 @@ jobs:
         if: needs.plan.outputs.source-deps != '[]'
         env:
           DEPS: ${{ needs.plan.outputs.source-deps }}
-          TOKEN: ${{ secrets.PANZER_SYNC_TOKEN || github.token }}
+          TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
           VERSION: ${{ matrix.build.version }}
         run: |
           set -euo pipefail
@@ -117,8 +117,8 @@ jobs:
       - name: Run it on every version it claims
         env:
           BUILD: ${{ toJSON(matrix.build) }}
-          GH_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN || github.token }}
-        run: python3 "../$PANZER" compat run --mod . --build "$BUILD" --work build/compat --summary "$GITHUB_STEP_SUMMARY"
+          GH_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
+        run: python3 "../$BICHAL" compat run --mod . --build "$BUILD" --work build/compat --summary "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v5
         if: always()

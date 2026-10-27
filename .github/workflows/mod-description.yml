@@ -13,7 +13,7 @@ on:
         type: boolean
         default: false
       build-logic-ref:
-        description: panzer-build-logic commit for the tools (default the commit of this workflow)
+        description: bichal-build-logic commit for the tools (default the commit of this workflow)
         type: string
         default: ""
     secrets:
@@ -24,16 +24,16 @@ jobs:
   description:
     runs-on: ubuntu-latest
     env:
-      PUBLISH: panzer-build-logic/publishing/panzer_publish.py
+      PUBLISH: bichal-build-logic/publishing/bichal_publish.py
     steps:
       - uses: actions/checkout@v5
         with:
           path: mod
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/PanzerBuildLogic
+          repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
-          path: panzer-build-logic
+          path: bichal-build-logic
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"

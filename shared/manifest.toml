@@ -1,7 +1,7 @@
-# Files panzer-build-logic keeps identical in every mod repository.
+# Files bichal-build-logic keeps identical in every mod repository.
 #
-#   panzer sync  [MOD|--all]   write them into local checkouts
-#   panzer check [MOD|--all]   list what differs (each mod's CI warns about it too)
+#   bichal sync  [MOD|--all]   write them into local checkouts
+#   bichal check [MOD|--all]   list what differs (each mod's CI warns about it too)
 #   .github/workflows/mods.yml pushes them to every repository in mods.toml
 #                              whenever any of them changes here
 #
@@ -10,7 +10,7 @@
 
 # [[file]]: copied byte for byte.
 #   path:       in the mod repository
-#   from:       in panzer-build-logic (default: shared/mod/<path>)
+#   from:       in bichal-build-logic (default: shared/mod/<path>)
 #   keep:       regexes of lines the mod owns; their current text is kept
 #   executable: set the executable bit
 
@@ -52,7 +52,7 @@ path = ".github/workflows/ci.yml"
 [[file]]
 path = ".github/workflows/descriptions.yml"
 
-# Lines between the panzer-build-logic markers of .gitignore; the rest of the
+# Lines between the bichal-build-logic markers of .gitignore; the rest of the
 # file belongs to the mod.
 [gitignore]
 lines = [
@@ -65,13 +65,13 @@ lines = [
   "logs/",
   "# generated from mod.stonecutter.properties.toml + the common TOML",
   "stonecutter.properties.toml",
-  "# local secrets and settings (see panzer-build-logic/.env.example)",
+  "# local secrets and settings (see bichal-build-logic/.env.example)",
   ".env",
   "repomix*",
   "__pycache__/",
 ]
 
-# README blocks between <!-- panzer:<name> --> and <!-- /panzer:<name> -->,
+# README blocks between <!-- bichal:<name> --> and <!-- /bichal:<name> -->,
 # generated from [legal]: "license" (the License section) and "footer" (one
 # line: code license, art license, holder). The publisher drops the markers.
 [readme]

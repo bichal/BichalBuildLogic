@@ -1,14 +1,14 @@
-import com.panzer.gradle.PanzerModExtension
+import net.bichal.gradle.BichalModExtension
 
-// Shared build logic: panzer-build-logic's panzer.neoforge-mod (dependencies,
+// Shared build logic: bichal-build-logic's bichal.neoforge-mod (dependencies,
 // resources, legal files, natives, buildAndCollect). Only what is specific to
 // {{name}} belongs here.
 plugins {
-    id("panzer.neoforge-mod")
+    id("bichal.neoforge-mod")
     idea
 }
 
-val modProps = extensions.getByType(PanzerModExtension::class.java).props
+val modProps = extensions.getByType(BichalModExtension::class.java).props
 val mainSourceSet = sourceSets.main.get()
 
 neoForge {
