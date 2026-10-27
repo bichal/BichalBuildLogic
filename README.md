@@ -99,7 +99,7 @@ the sync.
 
 **Automatic:** a push here that changes `shared/`, `legal/`, `tools/`, the wrapper, the
 common TOML or `mods.toml` runs `.github/workflows/mods.yml`, which syncs every mod and
-commits the result straight to its `master` (author `bichal`, overridable with the
+commits the result straight to its `main` (author `bichal`, overridable with the
 `BICHAL_GIT_NAME` / `BICHAL_GIT_EMAIL` repository variables). That push runs the mod's
 own CI. It needs the `BICHAL_SYNC_TOKEN` secret (fine-grained token, Contents and
 Workflows read/write on the mod repositories; `.env.example` has the exact steps);
@@ -181,7 +181,7 @@ version_range = "[0.2.0,)"                        # neoforge.mods.toml: ${celeri
 artifact = "net.bichal.mods:celeris-{mc}"         # {mc}: the Minecraft version being built
 maven = "https://bichal.github.io/Celeris/maven"
 repo = "bichal/Celeris"
-ci_build_from_source = true                       # CI publishes its master to mavenLocal first
+ci_build_from_source = true                       # CI publishes its main to mavenLocal first
 ```
 
 Resolved from `mavenLocal()` first (a local `publishToMavenLocal` wins), then `maven`;
@@ -394,7 +394,7 @@ changed.
 
 ## Releasing bichal-build-logic itself
 
-Mods build against the sibling checkout, so a push to `master` is live for every mod's
+Mods build against the sibling checkout, so a push to `main` is live for every mod's
 next build (and the Mods workflow syncs the shared files). A `v*` tag additionally
 publishes the plugin to `https://bichal.github.io/BichalBuildLogic/maven`.
 

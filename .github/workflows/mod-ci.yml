@@ -9,7 +9,7 @@ name: Mod CI (reusable)
 #   natives  every CMake-backed [natives.<name>] platform, built and self-tested
 #            on its own runner (ci_linux_script: all Linux platforms in one job,
 #            ci_prepare: run first, e.g. to vendor sources). Skipped when the
-#            native sources are unchanged since a build cached on master; a
+#            native sources are unchanged since a build cached on main; a
 #            v* tag always builds them afresh.
 #   build    every Minecraft version with tests; universal, per-system and
 #            sources jars, verified (tools/bichal.py ci verify-jars)

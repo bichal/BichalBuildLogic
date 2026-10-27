@@ -136,7 +136,7 @@ class Sync(unittest.TestCase):
         for name in ("ci.yml", "descriptions.yml"):
             text = (self.root / ".github" / "workflows" / name).read_text()
             self.assertNotIn(bichal_sync.PIN_MARK, text)
-            self.assertNotIn("@master", text)
+            self.assertNotIn("@main", text)
             self.assertNotIn("secrets: inherit", text)
             self.assertRegex(text, r"BichalBuildLogic/\.github/workflows/mod-[a-z]+\.yml@[0-9a-f]{40} # bichal-build-logic")
 
@@ -470,7 +470,7 @@ class TokenCheck(unittest.TestCase):
                 return R(user_status, headers or {}, "", {"login": "bichal"})
             if "/rules/branches/" in path:
                 return R(200, {}, "", {"rules": [{"type": t} for t in rules]})
-            if path.endswith("/branches/master"):
+            if path.endswith("/branches/main"):
                 return R(200, {}, "", {"protected": protected})
             return R(repo_status, {}, "Not Found" if repo_status == 404 else "", {"private": private})
         self.pt.api = api
@@ -559,11 +559,11 @@ class TokenCheck(unittest.TestCase):
         self.fake(headers={"x-oauth-scopes": "repo, workflow"}, receive=403)
         self.assertIn("no write role", self.run_check(CLASSIC)[0])
 
-    def test_master_protection_is_a_warning(self):
+    def test_main_protection_is_a_warning(self):
         self.fake(protected=True, rules=("pull_request",))
         text, ok, warnings = self.run_check()
         self.assertTrue(ok)
-        self.assertIn("master is protected", text)
+        self.assertIn("main is protected", text)
         self.assertTrue(any("pull_request" in w for w in warnings))
 
     def test_unsendable_token_makes_no_request_and_never_leaks(self):

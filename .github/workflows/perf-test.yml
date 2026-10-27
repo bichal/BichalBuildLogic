@@ -10,10 +10,10 @@ on:
     inputs:
       celeris-ref:
         description: Celeris branch, tag or commit to build
-        default: master
+        default: main
       velox-ref:
         description: Velox branch, tag or commit to build
-        default: master
+        default: main
       versions:
         description: Build versions (comma-separated)
         default: "1.21.1,26.1"

@@ -2,9 +2,9 @@ name: Mods
 
 # Control center for every mod in mods.toml, run from bichal-build-logic:
 #
-#   push to master   when shared/, legal/, tools/, the wrapper or the common TOML
+#   push to main   when shared/, legal/, tools/, the wrapper or the common TOML
 #                    change: sync, i.e. commit the updated shared files straight
-#                    to each mod's master (which then runs the mod's own CI)
+#                    to each mod's main (which then runs the mod's own CI)
 #   manual run       action:
 #                      check    report what differs, change nothing
 #                      sync     as on push
@@ -12,7 +12,7 @@ name: Mods
 #                               build-logic commit, as a dry run (nothing published)
 #                      compat   run each mod's jars on the other Minecraft versions
 #                               they claim (game_versions), on real NeoForge servers
-#                      release  tag v<[mod] version> on each mod's master (needs
+#                      release  tag v<[mod] version> on each mod's main (needs
 #                               docs/changelogs/<version>.md); the tag's CI publishes
 #                      token    check BICHAL_SYNC_TOKEN against every mod: valid,
 #                               repositories visible, fetch and push allowed
@@ -23,7 +23,7 @@ name: Mods
 # vars.BICHAL_GIT_EMAIL (default bichal <vtorresnun@gmail.com>).
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - "shared/**"
       - "legal/**"
@@ -149,7 +149,7 @@ jobs:
           fi
           echo "changed=$([ -n "$(git -C mod status --porcelain)" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
-      - name: Commit and push to master
+      - name: Commit and push to main
         if: steps.checkout.outcome == 'success' && needs.plan.outputs.action == 'sync' && steps.sync.outputs.changed == 'true'
         working-directory: mod
         env:
@@ -160,7 +160,7 @@ jobs:
           git config user.email "$EMAIL"
           git add -A
           git commit -m "Sync shared files from bichal-build-logic ${GITHUB_SHA::7}"
-          git push origin HEAD:master
+          git push origin HEAD:main
 
   token:
     needs: plan

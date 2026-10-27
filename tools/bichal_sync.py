@@ -25,7 +25,7 @@ PIN_MARK = "@BICHAL_BUILD_LOGIC_SHA"
 
 
 def build_logic_pin(build_logic: Path = BUILD_LOGIC) -> str:
-    """`@<commit> # bichal-build-logic master, <date>` for the bichal-build-logic
+    """`@<commit> # bichal-build-logic main, <date>` for the bichal-build-logic
     checkout. Only the commit decides it, so `bichal check` in CI (run from the
     pinned commit) agrees with the `bichal sync` that wrote it."""
     def git(*args: str) -> str:
@@ -34,7 +34,7 @@ def build_logic_pin(build_logic: Path = BUILD_LOGIC) -> str:
             raise BichalError(f"pinning shared workflows needs bichal-build-logic as a git checkout: {r.stderr.strip()}")
         return r.stdout.strip()
     sha, date = git("log", "-1", "--format=%H %cs").split()
-    return f"@{sha} # bichal-build-logic master, {date} (no release tags yet)"
+    return f"@{sha} # bichal-build-logic main, {date} (no release tags yet)"
 
 
 @dataclasses.dataclass

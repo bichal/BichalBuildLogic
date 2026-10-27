@@ -173,22 +173,22 @@ def classify(repo: str, token_kind: str, repo_api: Response, upload: Response, r
     return RepoResult(repo, visible, read, write, problems, private=private)
 
 
-def master_rules(token: str, repo: str) -> list[str]:
-    """Branch protection or rulesets on master that could refuse the sync's
+def main_rules(token: str, repo: str) -> list[str]:
+    """Branch protection or rulesets on main that could refuse the sync's
     direct push (they are enforced only on the real push)."""
     notes = []
-    branch = api(token, f"/repos/{repo}/branches/master")
+    branch = api(token, f"/repos/{repo}/branches/main")
     if branch.status == 404:
-        return ["warning: no master branch (the sync pushes to master)"]
+        return ["warning: no main branch (the sync pushes to main)"]
     if branch.status == 200 and branch.data.get("protected"):
-        notes.append("warning: master is protected; a direct push may be refused")
-    rules = api(token, f"/repos/{repo}/rules/branches/master")
+        notes.append("warning: main is protected; a direct push may be refused")
+    rules = api(token, f"/repos/{repo}/rules/branches/main")
     if rules.status == 200:
         kinds = sorted({r.get("type", "?") for r in (rules.data.get("rules") or [])}) if isinstance(rules.data, dict) else []
         blocking = [k for k in kinds if k in ("pull_request", "required_status_checks", "update", "non_fast_forward",
                                               "required_signatures", "required_linear_history")]
         if blocking:
-            notes.append(f"warning: rulesets on master ({', '.join(blocking)}) may refuse a direct push")
+            notes.append(f"warning: rulesets on main ({', '.join(blocking)}) may refuse a direct push")
     return notes
 
 
@@ -272,7 +272,7 @@ def check(raw: str, repos: list[str], need_write: bool = True) -> Report:
                           git_service(token, repo, "git-upload-pack"),
                           git_service(token, repo, "git-receive-pack"))
         if result.write and need_write:
-            for note in master_rules(token, repo):
+            for note in main_rules(token, repo):
                 result.problems.append(note)
                 warnings.append(f"{repo}: {note}")
         results.append(result)
