@@ -97,9 +97,9 @@ class FakeCurseForge(pp.CurseForgeVersions):
 
 class Labels(unittest.TestCase):
     def test_range_label(self):
-        self.assertEqual(pp.range_label(["1.21", "1.21.1", "1.21.6"]), "1.21(.0-.6)")
-        self.assertEqual(pp.range_label(["1.21.7", "1.21.10"]), "1.21(.7-.10)")
-        self.assertEqual(pp.range_label(["26.1", "26.3"]), "26(.1-.3)")
+        self.assertEqual(pp.range_label(["1.21", "1.21.1", "1.21.6"]), "1.21.(0-6)")
+        self.assertEqual(pp.range_label(["1.21.7", "1.21.10"]), "1.21.(7-10)")
+        self.assertEqual(pp.range_label(["26.1", "26.3"]), "26.(1-3)")
         self.assertEqual(pp.range_label(["1.21.11"]), "1.21.11")
 
     def test_java(self):
@@ -167,7 +167,7 @@ class Plan(unittest.TestCase):
 
     def test_files(self):
         f = self.plan["files"][0]
-        self.assertEqual(f["version_number"], "1.2.0-1.21(.0-.1)")
+        self.assertEqual(f["version_number"], "1.2.0-1.21.(0-1)")
         self.assertEqual(f["display_name"], "1.2.0 1.21–1.21.1")
         self.assertTrue(f["universal"].endswith("demo-1.2.0+1.21.1.jar"))
         self.assertEqual(sorted(f["platforms"]), ["java", "linux", "windows"])
@@ -267,8 +267,8 @@ class FabricPlan(unittest.TestCase):
         files = {f["build"]: f for f in self.plan["files"]}
         self.assertEqual(sorted(files), ["1.21.1", "1.21.1-fabric", "26.1", "26.1-fabric"])
         neo, fabric = files["1.21.1"], files["1.21.1-fabric"]
-        self.assertEqual(neo["version_number"], "1.2.0-1.21(.0-.1)")  # unchanged from NeoForge-only releases
-        self.assertEqual(fabric["version_number"], "1.2.0-1.21(.0-.1)-fabric")
+        self.assertEqual(neo["version_number"], "1.2.0-1.21.(0-1)")  # unchanged from NeoForge-only releases
+        self.assertEqual(fabric["version_number"], "1.2.0-1.21.(0-1)-fabric")
         self.assertEqual(fabric["display_name"], "1.2.0 1.21–1.21.1 Fabric")
         self.assertTrue(neo["universal"].endswith("demo-1.2.0+1.21.1.jar"))
         self.assertTrue(fabric["universal"].endswith("demo-1.2.0+1.21.1-fabric.jar"))

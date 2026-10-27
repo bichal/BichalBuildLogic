@@ -44,7 +44,7 @@ On a `v*` tag, the mod's CI (`mod-ci.yml`) builds its jars and calls `mod-releas
   resolved against CurseForge's list first (an unknown one fails the release instead of
   being dropped), and dependencies by slug.
 
-Version numbers follow `<version>-<range label>` (`0.2.0-1.21(.0-.6)`, `0.2.0-1.21.1`).
+Version numbers follow `<version>-<range label>` (`0.2.0-1.21.(0-6)`, `0.2.0-1.21.1`).
 Re-running is safe for GitHub (assets replaced) and Modrinth (existing versions
 skipped); for CurseForge re-run only the failed target (`targets: curseforge`),
 since its API cannot list uploaded files.

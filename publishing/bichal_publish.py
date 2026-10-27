@@ -244,7 +244,7 @@ def load_config(root: Path) -> ModConfig:
 
 
 def range_label(versions: list[str]) -> str:
-    """1.21 .. 1.21.6 -> "1.21(.0-.6)"; a single version stays as is (the published scheme)."""
+    """1.21 .. 1.21.6 -> "1.21.(0-6)"; a single version stays as is (the published scheme)."""
     if len(versions) == 1:
         return versions[0]
     first, last = versions[0].split("."), versions[-1].split(".")
@@ -257,7 +257,7 @@ def range_label(versions: list[str]) -> str:
             break
         common.append(a)
     head = ".".join(common)
-    return f"{head}(.{'.'.join(first[len(common):])}-.{'.'.join(last[len(common):])})"
+    return f"{head}.({'.'.join(first[len(common):])}-{'.'.join(last[len(common):])})"
 
 
 def range_text(versions: list[str]) -> str:
