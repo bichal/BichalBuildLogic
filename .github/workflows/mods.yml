@@ -21,7 +21,8 @@ name: Mods
 # `token` in mods.toml says so): a fine-grained token with Contents and
 # Workflows read/write on the mod repositories (see .env.example). Without it,
 # pushes become checks. Commits are authored by vars.BICHAL_GIT_NAME /
-# vars.BICHAL_GIT_EMAIL (default bichal <vtorresnun@gmail.com>).
+# vars.BICHAL_GIT_EMAIL (default: the bichal GitHub noreply address; GitHub
+# refuses a private email address in a push).
 on:
   push:
     branches: [main]
@@ -156,7 +157,7 @@ jobs:
         working-directory: mod
         env:
           NAME: ${{ vars.BICHAL_GIT_NAME || 'bichal' }}
-          EMAIL: ${{ vars.BICHAL_GIT_EMAIL || 'vtorresnun@gmail.com' }}
+          EMAIL: ${{ vars.BICHAL_GIT_EMAIL || '116367817+bichal@users.noreply.github.com' }}
         run: |
           git config user.name "$NAME"
           git config user.email "$EMAIL"
@@ -232,7 +233,7 @@ jobs:
       - name: Tag v<version>
         env:
           NAME: ${{ vars.BICHAL_GIT_NAME || 'bichal' }}
-          EMAIL: ${{ vars.BICHAL_GIT_EMAIL || 'vtorresnun@gmail.com' }}
+          EMAIL: ${{ vars.BICHAL_GIT_EMAIL || '116367817+bichal@users.noreply.github.com' }}
         run: |
           git -C mod config user.name "$NAME"
           git -C mod config user.email "$EMAIL"
