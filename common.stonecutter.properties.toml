@@ -1,8 +1,4 @@
-[plugins]
-stonecutter = "0.9.7"
-foojay = "1.0.0"
-moddev = "2.0.143"
-loom = "1.18.3"
+# Gradle plugin versions (Stonecutter, ModDevGradle, Loom, Foojay) live in gradle/libs.versions.toml.
 
 [dependencies]
 junit = "6.1.3"

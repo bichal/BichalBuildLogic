@@ -19,30 +19,26 @@ repositories {
     maven("https://maven.fabricmc.net/") { name = "Fabric" }
 }
 
-// Reads [plugins] from the common TOML, instead of duplicating the Stonecutter/ModDev
-// versions as a string literal here and in the TOML.
-fun pluginVersion(key: String): String {
-    val toml = File(rootDir, "common.stonecutter.properties.toml")
-    val line = toml.readLines()
-        .map { it.trim() }
-        .dropWhile { it != "[plugins]" }
-        .drop(1)
-        .takeWhile { !it.startsWith("[") }
-        .firstOrNull { it.startsWith("$key ") || it.startsWith("$key=") }
-        ?: error("Could not find '$key' under [plugins] in common.stonecutter.properties.toml")
-    return line.substringAfter("=").trim().removeSurrounding("\"")
+// Versions come from gradle/libs.versions.toml (the `libs` accessors below), not from
+// strings repeated here or parsed out of a TOML file by hand.
+dependencies {
+    implementation(libs.stonecutter.plugin)
+    implementation(libs.moddev.plugin)
+    implementation(libs.loom.plugin)
+    implementation(libs.foojay.plugin)
+    implementation(libs.gson)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
-dependencies {
-    implementation("dev.kikugie.stonecutter:dev.kikugie.stonecutter.gradle.plugin:${pluginVersion("stonecutter")}")
-    implementation("net.neoforged.moddev:net.neoforged.moddev.gradle.plugin:${pluginVersion("moddev")}")
-    implementation("net.fabricmc:fabric-loom:${pluginVersion("loom")}")
-    implementation("org.gradle.toolchains:foojay-resolver:${pluginVersion("foojay")}")
-    implementation("com.google.code.gson:gson:2.14.0")
+tasks.test {
+    useJUnitPlatform()
 }
 
 // Class-based plugins. bichal.settings is a settings plugin: a mod's
-// settings.gradle.kts applies it after includeBuild("../bichal-build-logic"),
+// settings.gradle.kts applies it after includeBuild(<this checkout>),
 // which puts this build (and Stonecutter, ModDevGradle, Foojay) on the settings
 // classpath shared by every project of the mod.
 gradlePlugin {

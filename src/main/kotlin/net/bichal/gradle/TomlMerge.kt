@@ -3,7 +3,7 @@ package net.bichal.gradle
 import java.io.File
 
 /**
- * Merges `../bichal-build-logic/common.stonecutter.properties.toml` with the
+ * Merges the build-logic checkout's `common.stonecutter.properties.toml` with the
  * mod's `mod.stonecutter.properties.toml` into `stonecutter.properties.toml`,
  * which Stonecutter and the rest of the build read.
  *

@@ -13,7 +13,8 @@ bichal-build-logic/
 ├── bichal, bichal.cmd                    # the `bichal` tool (tools/bichal.py), Linux/macOS and Windows
 ├── .env.example                          # tokens and local settings for `bichal` (copy to .env)
 ├── mods.toml                             # every mod built on this repository
-├── common.stonecutter.properties.toml    # shared TOML: [legal], [plugins], [dependencies],
+├── gradle/libs.versions.toml             # Gradle plugin and library versions (version catalog)
+├── common.stonecutter.properties.toml    # shared TOML: [legal], [dependencies],
 │                                         # [neoforge], [tools.*], ["1.21.x"] blocks,
 │                                         # [overrides.*], [stonecutter.profiles.*]
 ├── legal/
@@ -134,13 +135,17 @@ as `neoforge.mods.toml`'s `license`. A new license or component is one catalog e
 
 ## How a mod consumes this repository
 
-Clone `bichal-build-logic` **next to** each mod. A mod's `settings.gradle.kts` (shared,
-a few lines) `includeBuild`s it and applies `bichal.settings`, which:
+Clone `bichal-build-logic` **next to** each mod. The folder may carry any accepted name,
+matched ignoring case and separators (`bichal-build-logic`, `PanzerBuildLogic`,
+`panzer-build-logic`, ...); `BICHAL_BUILD_LOGIC_DIR` points at it explicitly. The
+accepted names are listed twice on purpose (the shared settings script runs before this
+build is on the classpath) and `tools/test_layout.py` fails when the two lists disagree.
+A mod's `settings.gradle.kts` (shared, a few lines) `includeBuild`s it and applies `bichal.settings`, which:
 
 1. merges `common.stonecutter.properties.toml` with the mod's
    `mod.stonecutter.properties.toml` into `stonecutter.properties.toml` (generated,
    git-ignored; a table the mod declares replaces the common one);
-2. applies Stonecutter and the Foojay toolchain resolver, at the versions in `[plugins]`;
+2. applies Stonecutter and the Foojay toolchain resolver, at the versions in `gradle/libs.versions.toml`;
 3. resolves the Minecraft versions (`[stonecutter]`, below) and creates the Stonecutter
    tree for the root project plus `[stonecutter] branches = ["example"]`;
 4. validates the merged TOML and reports every problem at once.
@@ -196,7 +201,7 @@ Each mod's `.github/workflows/ci.yml` calls `mod-ci.yml`, which reads the mod's 
 | release | `mod-release.yml`: dry run with a `release-preview` artifact on every push, publishing on `v*` tags |
 
 The build and maven jobs cache `~/.gradle/caches/modules-2`, `neoformruntime` and the
-Gradle distribution, keyed by the versions built, their NeoForge builds, `[plugins]` and
+Gradle distribution, keyed by the versions built, their NeoForge builds, the version catalog and
 the wrapper: Minecraft and NeoForge are downloaded and decompiled once per key, not on
 every run.
 

@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
       - run: chmod +x gradlew
       - run: ./gradlew build
 
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: 25
       - run: chmod +x gradlew
 
       # Strips the leading 'v' from the tag (v1.0.0 -> 1.0.0) so gradle.properties'

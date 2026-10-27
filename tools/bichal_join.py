@@ -42,7 +42,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bichal_compat import BUILD_LOGIC, NEOFORGE_MAVEN, moddev_version  # noqa: E402
-from bichal_mod import java_env  # noqa: E402
+from bichal_mod import catalog_version, java_env  # noqa: E402
 
 PORT = 25565
 JOINED = re.compile(r"joined the game|logged in with entity id")
@@ -224,10 +224,7 @@ loom {
 
 
 def loom_version() -> str:
-    for line in (BUILD_LOGIC / "common.stonecutter.properties.toml").read_text().splitlines():
-        if line.strip().startswith("loom"):
-            return line.split("=", 1)[1].strip().strip('"')
-    raise RuntimeError("[plugins] loom is missing in common.stonecutter.properties.toml")
+    return catalog_version("loom")
 
 
 def fabric_client_project(root: Path, minecraft: str, loader: str, java: int) -> None:
