@@ -481,14 +481,14 @@ class TokenCheck(unittest.TestCase):
         r = self.pt.check(token, list(repos))
         return "\n".join(r.lines), r.ok, r.warnings
 
-    def test_good_fine_grained_leaves_workflows_unconfirmed(self):
+    def test_good_fine_grained_is_ready_and_has_no_workflows_warning(self):
         self.fake(headers={"github-authentication-token-expiration": "2027-01-01 00:00:00 UTC"})
         text, ok, warnings = self.run_check()
         self.assertTrue(ok)
         self.assertIn("Acts as: bichal", text)
         self.assertIn("2027-01-01", text)
-        self.assertIn("only the Workflows permission above is unconfirmed", text)
-        self.assertTrue(any("Workflows" in w for w in warnings))
+        self.assertIn("the token can read and push every selected mod", text)
+        self.assertFalse(any("Workflows" in w for w in warnings))
 
     def test_invalid(self):
         self.fake(user_status=401)
