@@ -15,3 +15,11 @@ repo = "bichal/Tessera"
 [mods.velox]
 repo = "bichal/velox"
 private = true
+
+[mods.dice_and_delish]
+repo = "PanzerDevOrg/DiceAndDelish"
+folder = "DiceAndDelish"
+
+[mods.bplb]
+repo = "bichal/BetterPlayerLocatorBar"
+folder = "BetterPlayerLocatorBar"
