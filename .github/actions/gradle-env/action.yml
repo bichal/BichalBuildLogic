@@ -2,7 +2,7 @@ name: Gradle environment
 description: >
   The JDKs a mod build needs (Zulu, newest last so it runs Gradle), GRADLE_JDKS
   naming them to Gradle's toolchain resolver, and the Gradle caches. Used from a
-  checkout of this repository (uses: ./panzer-build-logic/.github/actions/gradle-env),
+  checkout of this repository (uses: ./bichal-build-logic/.github/actions/gradle-env),
   so every workflow gets it at the same build-logic ref.
 inputs:
   java:
@@ -14,7 +14,7 @@ inputs:
 runs:
   using: composite
   steps:
-    # Zulu, because panzer.neoforge-mod asks for Azul toolchains: with the JDKs
+    # Zulu, because bichal.neoforge-mod asks for Azul toolchains: with the JDKs
     # Gradle needs already installed (and named to it), it never downloads one.
     - id: list
       shell: bash

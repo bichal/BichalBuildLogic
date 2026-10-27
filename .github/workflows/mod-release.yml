@@ -1,7 +1,7 @@
 name: Mod release (reusable)
 
 # Called by mod-ci.yml after it has built a mod's jars. One job,
-# three destinations, all driven by publishing/panzer_publish.py:
+# three destinations, all driven by publishing/bichal_publish.py:
 #   GitHub release   universal + per-system + sources jars, SHA256SUMS, changelog
 #   Modrinth         universal jar per Minecraft range, dependencies, featured flags
 #   CurseForge       universal jar per Minecraft range, with every tag resolved
@@ -26,7 +26,7 @@ on:
         type: string
         default: github,modrinth,curseforge
       build-logic-ref:
-        description: panzer-build-logic commit for the tools (default the commit of this workflow)
+        description: bichal-build-logic commit for the tools (default the commit of this workflow)
         type: string
         default: ""
       mod-repository:
@@ -45,7 +45,7 @@ on:
         required: false
       CURSEFORGE_TOKEN:
         required: false
-      PANZER_SYNC_TOKEN:
+      BICHAL_SYNC_TOKEN:
         required: false
 
 jobs:
@@ -54,20 +54,20 @@ jobs:
     permissions:
       contents: write
     env:
-      PUBLISH: panzer-build-logic/publishing/panzer_publish.py
+      PUBLISH: bichal-build-logic/publishing/bichal_publish.py
     steps:
       - uses: actions/checkout@v5
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
-          token: ${{ inputs.mod-repository && secrets.PANZER_SYNC_TOKEN || github.token }}
+          token: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/PanzerBuildLogic
+          repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
-          path: panzer-build-logic
+          path: bichal-build-logic
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"

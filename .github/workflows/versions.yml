@@ -2,7 +2,7 @@ name: Versions
 
 # What NeoForge and Fabric have published per Minecraft version (for bumping
 # the version matrix in common.stonecutter.properties.toml), from a runner
-# that reaches both mavens: `panzer versions neoforge` and `panzer versions fabric`.
+# that reaches both mavens: `bichal versions neoforge` and `bichal versions fabric`.
 on:
   workflow_dispatch:
     inputs:
@@ -23,6 +23,6 @@ jobs:
           SINCE: ${{ inputs.since }}
         run: |
           {
-            echo "## NeoForge"; echo '```'; python3 tools/panzer.py versions neoforge "$SINCE"; echo '```'
-            echo "## Fabric"; echo '```'; python3 tools/panzer.py versions fabric "$SINCE"; echo '```'
+            echo "## NeoForge"; echo '```'; python3 tools/bichal.py versions neoforge "$SINCE"; echo '```'
+            echo "## Fabric"; echo '```'; python3 tools/bichal.py versions fabric "$SINCE"; echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"

@@ -1,17 +1,17 @@
-# Every mod built on panzer-build-logic. `panzer sync --all`, `panzer check --all`,
-# `panzer mods` and .github/workflows/mods.yml work through this list.
+# Every mod built on bichal-build-logic. `bichal sync --all`, `bichal check --all`,
+# `bichal mods` and .github/workflows/mods.yml work through this list.
 #
 #   repo:   GitHub repository (Owner/Repo)
-#   folder: local checkout next to panzer-build-logic (default: the repository
-#           name; PANZER_MODS_DIR changes the parent folder)
-#   private: true for private repositories (only readable with PANZER_SYNC_TOKEN)
+#   folder: local checkout next to bichal-build-logic (default: the repository
+#           name; BICHAL_MODS_DIR changes the parent folder)
+#   private: true for private repositories (only readable with BICHAL_SYNC_TOKEN)
 
 [mods.celeris]
-repo = "PanzerDevOrg/Celeris"
+repo = "bichal/Celeris"
 
 [mods.tessera]
-repo = "PanzerDevOrg/Tessera"
+repo = "bichal/Tessera"
 
 [mods.velox]
-repo = "PanzerDevOrg/velox"
+repo = "bichal/velox"
 private = true

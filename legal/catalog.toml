@@ -1,6 +1,6 @@
-# Everything legal every PanzerDevOrg mod ships, in one place.
+# Everything legal every bichal mod ships, in one place.
 #
-# `./panzer sync` turns this catalog plus [legal] / [legal.third_party] from the
+# `./bichal sync` turns this catalog plus [legal] / [legal.third_party] from the
 # mod's TOML into the mod's LICENSE, LICENSE-<x>, NOTICE and the README's
 # license block; the build plugin then packs those same files into every jar
 # (META-INF/) and sources jar. Change a text here, run the sync (or let CI do

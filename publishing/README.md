@@ -1,7 +1,7 @@
 # publishing
 
-Release and description publishing shared by every PanzerDevOrg mod
-(`panzer_publish.py`, run by the reusable workflows in `.github/workflows/`).
+Release and description publishing shared by every bichal mod
+(`bichal_publish.py`, run by the reusable workflows in `.github/workflows/`).
 
 ## One description, three sites
 
@@ -64,7 +64,7 @@ server_side = "required"
 type = "required"
 modrinth = "sQphaM3I"
 curseforge = "celeris"               # CurseForge relations use the project slug
-github = "PanzerDevOrg/Celeris"      # README links to it become the site's page
+github = "bichal/Celeris"      # README links to it become the site's page
 
 ["1.21.1"]
 game_versions = ["1.21", "1.21.1"]   # what this jar is published for
@@ -72,20 +72,20 @@ game_versions = ["1.21", "1.21.1"]   # what this jar is published for
 
 Secrets: `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN` (repository or organization
 secrets, which each mod's ci.yml passes by name, never with `secrets: inherit`;
-`panzer secrets` sets them from `.env`).
+`bichal secrets` sets them from `.env`).
 A missing project id skips that site.
 
 ## Testing without publishing
 
 ```bash
 pip install markdown-it-py
-./panzer publish preview --mod ../Celeris --out /tmp/celeris-preview
+./bichal publish preview --mod ../Celeris --out /tmp/celeris-preview
 # open /tmp/celeris-preview/preview.html: Modrinth page, CurseForge page, GitHub release, upload table
-./panzer publish publish --mod ../Celeris --dry-run --offline
+./bichal publish publish --mod ../Celeris --dry-run --offline
 python3 -m unittest discover -s publishing
 ```
 
-`./panzer publish ...` is `python3 publishing/panzer_publish.py ...` with `.env`
+`./bichal publish ...` is `python3 publishing/bichal_publish.py ...` with `.env`
 loaded (tokens for local, non-dry runs).
 
 In CI every push runs the release workflow as a dry run and uploads the same

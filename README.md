@@ -1,17 +1,17 @@
-# Panzer Build Logic
+# Bichal Build Logic
 
-Everything PanzerDevOrg's NeoForge and Fabric mods share, in one repository: the Gradle build
+Everything bichal's NeoForge and Fabric mods share, in one repository: the Gradle build
 (Stonecutter multi-version setup, natives, packaging), the licenses and legal notices,
 the CI pipeline, the release publisher, and the files every mod repository carries
-(Gradle wrapper, settings, workflows). Change something here once; `panzer sync` (or
+(Gradle wrapper, settings, workflows). Change something here once; `bichal sync` (or
 CI, automatically) puts it into every mod.
 
 ## Structure
 
 ```
-panzer-build-logic/
-├── panzer, panzer.cmd                    # the `panzer` tool (tools/panzer.py), Linux/macOS and Windows
-├── .env.example                          # tokens and local settings for `panzer` (copy to .env)
+bichal-build-logic/
+├── bichal, bichal.cmd                    # the `bichal` tool (tools/bichal.py), Linux/macOS and Windows
+├── .env.example                          # tokens and local settings for `bichal` (copy to .env)
 ├── mods.toml                             # every mod built on this repository
 ├── common.stonecutter.properties.toml    # shared TOML: [legal], [plugins], [dependencies],
 │                                         # [neoforge], [tools.*], ["1.21.x"] blocks,
@@ -21,10 +21,10 @@ panzer-build-logic/
 │   ├── licenses/                         # full license texts (AGPL-3.0, CC BY-NC-SA 4.0)
 │   └── third-party/                      # upstream license files (zstd, bc7enc_rdo)
 ├── shared/
-│   ├── manifest.toml                     # what `panzer sync` keeps identical in every mod
+│   ├── manifest.toml                     # what `bichal sync` keeps identical in every mod
 │   ├── mod/                              # those files (settings, workflows, ...)
-│   └── new-mod/                          # template for `panzer new`
-├── tools/                                # panzer: sync, check, new, release, secrets, ci
+│   └── new-mod/                          # template for `bichal new`
+├── tools/                                # bichal: sync, check, new, release, secrets, ci
 ├── publishing/                           # release + description publisher (Modrinth, CurseForge, GitHub)
 ├── .github/workflows/
 │   ├── mod-ci.yml                        # every mod's CI (reusable): natives, build, verify, release
@@ -33,50 +33,50 @@ panzer-build-logic/
 │   ├── mods.yml                          # control center: sync / check / build / release every mod
 │   └── publish.yml                       # this repository's own CI and plugin publishing
 └── src/main/kotlin/
-    ├── panzer.mod-common.gradle.kts             # loader-independent part (toolchains, JVM modules, packaging, natives)
-    ├── panzer.neoforge-mod.gradle.kts           # NeoForge nodes (ModDevGradle)
-    ├── panzer.fabric-mod.gradle.kts             # Fabric nodes (Loom; remapping Loom for 1.21.x)
-    ├── panzer.neoforge-mod-example.gradle.kts   # convention plugin for :example branches
-    └── com/panzer/gradle/
-        ├── PanzerSettingsPlugin.kt       # panzer.settings: TOML merge, versions, Stonecutter tree
-        ├── PanzerModPlugin.kt            # panzer.mod: neoforge-mod or fabric-mod by node name
-        ├── PanzerStonecutterPlugin.kt    # panzer.stonecutter: shared Stonecutter parameters, `fabric`/`neoforge` constants
+    ├── bichal.mod-common.gradle.kts             # loader-independent part (toolchains, JVM modules, packaging, natives)
+    ├── bichal.neoforge-mod.gradle.kts           # NeoForge nodes (ModDevGradle)
+    ├── bichal.fabric-mod.gradle.kts             # Fabric nodes (Loom; remapping Loom for 1.21.x)
+    ├── bichal.neoforge-mod-example.gradle.kts   # convention plugin for :example branches
+    └── net/bichal/gradle/
+        ├── BichalSettingsPlugin.kt       # bichal.settings: TOML merge, versions, Stonecutter tree
+        ├── BichalModPlugin.kt            # bichal.mod: neoforge-mod or fabric-mod by node name
+        ├── BichalStonecutterPlugin.kt    # bichal.stonecutter: shared Stonecutter parameters, `fabric`/`neoforge` constants
         ├── ModPackaging.kt               # mods.toml expansion, legal files, natives, buildAndCollect, [depends_on]
         ├── PlatformJars.kt               # per-system jars ([publish] platforms)
         ├── NativeLibraries.kt            # [natives.<name>] specs; CMakeBuildTask.kt builds them
         ├── TomlMerge.kt, TomlBlockReader.kt, ModBuildProperties.kt, VersionOverrides.kt
-        ├── PanzerDiagnostics.kt          # early validation of the merged TOML
+        ├── BichalDiagnostics.kt          # early validation of the merged TOML
         ├── ToolVersions.kt, ExternalToolResolver.kt, OptimizeTexturesTask.kt
         └── JvmModulePreprocessor.kt, PreprocessJvmModuleTask.kt, NeoForgeMutexPlugin.kt
 ```
 
-## The `panzer` tool
+## The `bichal` tool
 
-Python 3.11+ only (no packages, except `markdown-it-py` for `panzer publish`). Run it
-from anywhere: `./panzer` on Linux/macOS, `panzer` (panzer.cmd) on Windows.
+Python 3.11+ only (no packages, except `markdown-it-py` for `bichal publish`). Run it
+from anywhere: `./bichal` on Linux/macOS, `bichal` (bichal.cmd) on Windows.
 
 | Command | Does |
 |---|---|
-| `panzer mods` | lists the mods in `mods.toml`, their local checkout and whether they are in sync |
-| `panzer sync [MOD...] [--all]` | writes the shared files into mod checkouts (`--diff` shows the changes) |
-| `panzer check [MOD...] [--all]` | the same as a report; exits 1 if anything differs |
-| `panzer new ../Shiny --id shiny` | scaffolds a new mod (TOML, build script, main class, README, changelog) and syncs it |
-| `panzer release celeris --push` | checks the changelog, a clean tree and the shared files, then pushes `v<version>`; the tag's CI publishes |
-| `panzer secrets [--org PanzerDevOrg]` | copies `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, `PANZER_SYNC_TOKEN` from `.env` into GitHub Actions secrets (needs `gh`) |
-| `panzer publish ...` | the release publisher, see [`publishing/README.md`](publishing/README.md) |
-| `panzer doctor` | checks Python, git/gh/java, tokens and mod checkouts |
-| `panzer token-check` | checks `PANZER_SYNC_TOKEN` against every mod: valid, expiry, repositories visible, fetch and push allowed (changes nothing) |
-| `panzer versions [list\|use\|all\|prefetch\|status\|clean]` | the Minecraft version matrix, what each mod builds and what is downloaded; work on some versions only; download every version once for all mods (see [Minecraft versions](#minecraft-versions)) |
+| `bichal mods` | lists the mods in `mods.toml`, their local checkout and whether they are in sync |
+| `bichal sync [MOD...] [--all]` | writes the shared files into mod checkouts (`--diff` shows the changes) |
+| `bichal check [MOD...] [--all]` | the same as a report; exits 1 if anything differs |
+| `bichal new ../Shiny --id shiny` | scaffolds a new mod (TOML, build script, main class, README, changelog) and syncs it |
+| `bichal release celeris --push` | checks the changelog, a clean tree and the shared files, then pushes `v<version>`; the tag's CI publishes |
+| `bichal secrets [--org bichal]` | copies `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, `BICHAL_SYNC_TOKEN` from `.env` into GitHub Actions secrets (needs `gh`) |
+| `bichal publish ...` | the release publisher, see [`publishing/README.md`](publishing/README.md) |
+| `bichal doctor` | checks Python, git/gh/java, tokens and mod checkouts |
+| `bichal token-check` | checks `BICHAL_SYNC_TOKEN` against every mod: valid, expiry, repositories visible, fetch and push allowed (changes nothing) |
+| `bichal versions [list\|use\|all\|prefetch\|status\|clean]` | the Minecraft version matrix, what each mod builds and what is downloaded; work on some versions only; download every version once for all mods (see [Minecraft versions](#minecraft-versions)) |
 
 `MOD` is a path or a key of `mods.toml`. Mod checkouts are looked up next to this
-repository (`../Celeris`, `../Tessera`, `../velox`), or under `PANZER_MODS_DIR`.
+repository (`../Celeris`, `../Tessera`, `../velox`), or under `BICHAL_MODS_DIR`.
 
 ### `.env`
 
 Copy `.env.example` to `.env` (git-ignored) and fill in what you use: the Modrinth and
-CurseForge tokens for local publishing, `PANZER_SYNC_TOKEN` for the Mods workflow,
-`PANZER_MODS_DIR`. `panzer` and the publisher read `.env` from the current directory,
-the mod and this repository; real environment variables always win. `panzer secrets`
+CurseForge tokens for local publishing, `BICHAL_SYNC_TOKEN` for the Mods workflow,
+`BICHAL_MODS_DIR`. `bichal` and the publisher read `.env` from the current directory,
+the mod and this repository; real environment variables always win. `bichal secrets`
 then sets the same tokens on GitHub, so they live in one file.
 
 ## Shared files
@@ -89,9 +89,9 @@ per mod:
 | `gradlew`, `gradlew.bat`, `gradle/wrapper/*` | this repository's own wrapper |
 | `settings.gradle.kts`, `stonecutter.gradle.kts`, `gradle.properties`, `.gitattributes` | `shared/mod/` (the `stonecutter active` line stays the mod's) |
 | `.github/workflows/ci.yml`, `descriptions.yml` | `shared/mod/.github/workflows/` (thin callers of the reusable workflows) |
-| `.gitignore` | the block between the `panzer-build-logic` markers; the rest is the mod's |
+| `.gitignore` | the block between the `bichal-build-logic` markers; the rest is the mod's |
 | `LICENSE`, `LICENSE-AGPL`, `LICENSE-CC`, `NOTICE` | `legal/` and `[legal]` (below) |
-| README `<!-- panzer:license -->` and `<!-- panzer:footer -->` blocks | `legal/` and `[legal]` |
+| README `<!-- bichal:license -->` and `<!-- bichal:footer -->` blocks | `legal/` and `[legal]` |
 
 Former per-mod copies (`package.yml`, `src/main/resources/LICENSE`, ...) are deleted by
 the sync.
@@ -99,8 +99,8 @@ the sync.
 **Automatic:** a push here that changes `shared/`, `legal/`, `tools/`, the wrapper, the
 common TOML or `mods.toml` runs `.github/workflows/mods.yml`, which syncs every mod and
 commits the result straight to its `master` (author `bichal`, overridable with the
-`PANZER_GIT_NAME` / `PANZER_GIT_EMAIL` repository variables). That push runs the mod's
-own CI. It needs the `PANZER_SYNC_TOKEN` secret (fine-grained token, Contents and
+`BICHAL_GIT_NAME` / `BICHAL_GIT_EMAIL` repository variables). That push runs the mod's
+own CI. It needs the `BICHAL_SYNC_TOKEN` secret (fine-grained token, Contents and
 Workflows read/write on the mod repositories; `.env.example` has the exact steps);
 without it the workflow only reports. *Actions → Mods → action: token* checks the
 secret from GitHub itself.
@@ -114,7 +114,7 @@ what ends up in the jar). The common TOML says which licenses every mod uses:
 
 ```toml
 [legal]
-holder = "Panzer"
+holder = "Bichal"
 code = "AGPL-3.0-only"
 assets = "CC-BY-NC-SA-4.0"
 ```
@@ -126,7 +126,7 @@ A mod lists what it bundles, and can replace `[legal]` with its own complete tab
 components = ["zstd"]
 ```
 
-From that, `panzer sync` writes `LICENSE` (summary), the full text of each license,
+From that, `bichal sync` writes `LICENSE` (summary), the full text of each license,
 `NOTICE` (every component's notice and license text, which BSD and MIT require for
 binary redistribution) and the README's license table and footer. The build copies
 `LICENSE*` and `NOTICE` into `META-INF/` of every jar and sources jar, and uses `code`
@@ -134,8 +134,8 @@ as `neoforge.mods.toml`'s `license`. A new license or component is one catalog e
 
 ## How a mod consumes this repository
 
-Clone `panzer-build-logic` **next to** each mod. A mod's `settings.gradle.kts` (shared,
-a few lines) `includeBuild`s it and applies `panzer.settings`, which:
+Clone `bichal-build-logic` **next to** each mod. A mod's `settings.gradle.kts` (shared,
+a few lines) `includeBuild`s it and applies `bichal.settings`, which:
 
 1. merges `common.stonecutter.properties.toml` with the mod's
    `mod.stonecutter.properties.toml` into `stonecutter.properties.toml` (generated,
@@ -145,7 +145,7 @@ a few lines) `includeBuild`s it and applies `panzer.settings`, which:
    tree for the root project plus `[stonecutter] branches = ["example"]`;
 4. validates the merged TOML and reports every problem at once.
 
-The mod's `build.gradle.kts` applies `panzer.mod` (or `panzer.neoforge-mod` for a
+The mod's `build.gradle.kts` applies `bichal.mod` (or `bichal.neoforge-mod` for a
 NeoForge-only mod) and keeps only what is
 really its own (runs, extra tasks, publications). The plugin provides the rest:
 NeoForge/Parchment setup, Java toolchains, JVM modules, `neoforge.mods.toml` and mixin
@@ -155,7 +155,7 @@ expansion (`mod_<key>` for every `[mod]` key, `mod_license`, version ranges,
 ### Fabric
 
 `[stonecutter] loaders = ["neoforge", "fabric"]` gives every Minecraft version a second
-Stonecutter node, `<version>-fabric`, built by `panzer.fabric-mod` with Fabric Loom
+Stonecutter node, `<version>-fabric`, built by `bichal.fabric-mod` with Fabric Loom
 (Mojang names; the remapping Loom turns 1.21.x jars into intermediary in `remapJar`,
 26.x is unobfuscated). Sources pick a loader with the `fabric`/`neoforge` constants
 (`//? if fabric {`, `//? if fabric && >=26.1 {`), `fabric.mod.json` is expanded like
@@ -164,7 +164,7 @@ and each loader's jar leaves out the other's metadata. Jars are named
 `<id>-<version>+<mc>-fabric.jar`; the publisher uploads them as separate Modrinth and
 CurseForge files with the Fabric loader tag and a required Fabric API dependency.
 `[fabric] loader_version` and each version's `fabric_api_version` live in the common TOML
-(`panzer versions fabric` lists the newest); `-Ppanzer.loaders=fabric` builds one loader
+(`bichal versions fabric` lists the newest); `-Pbichal.loaders=fabric` builds one loader
 only. Loom needs Gradle to run on Java 25, which CI already uses.
 
 ### Dependencies on other mods
@@ -173,25 +173,25 @@ only. Loom needs Gradle to run on Java 25, which CI already uses.
 [depends_on.celeris]
 version = "0.2.0"                                 # compiled against
 version_range = "[0.2.0,)"                        # neoforge.mods.toml: ${celeris_version_range}
-artifact = "com.panzer.mods:celeris-{mc}"         # {mc}: the Minecraft version being built
-maven = "https://panzerdevorg.github.io/Celeris/maven"
-repo = "PanzerDevOrg/Celeris"
+artifact = "net.bichal.mods:celeris-{mc}"         # {mc}: the Minecraft version being built
+maven = "https://bichal.github.io/Celeris/maven"
+repo = "bichal/Celeris"
 ci_build_from_source = true                       # CI publishes its master to mavenLocal first
 ```
 
 Resolved from `mavenLocal()` first (a local `publishToMavenLocal` wins), then `maven`;
-`-Ppanzer.celeris.maven=<url>` points at another repository.
+`-Pbichal.celeris.maven=<url>` points at another repository.
 
 ## CI
 
 Each mod's `.github/workflows/ci.yml` calls `mod-ci.yml`, which reads the mod's TOML
-(`panzer ci plan`) and runs:
+(`bichal ci plan`) and runs:
 
 | Job | Does |
 |---|---|
 | plan | native matrix, JDKs (21, plus 25 for 26.x), source dependencies, publish or dry run, shared-file check |
 | natives | each CMake `[natives.<name>]` platform on its own runner, with its CTest suite; `ci_prepare` runs first, `ci_linux_script` builds all Linux platforms in one job instead |
-| build | `./gradlew build buildAndCollect -Ppanzer.native.strict=true` (`[ci] gradle_tasks` overrides; `[ci] display = true` runs it under Xvfb with Mesa, for tasks that start a game client), then `panzer ci verify-jars`: natives per jar, legal files, sources |
+| build | `./gradlew build buildAndCollect -Pbichal.native.strict=true` (`[ci] gradle_tasks` overrides; `[ci] display = true` runs it under Xvfb with Mesa, for tasks that start a game client), then `bichal ci verify-jars`: natives per jar, legal files, sources |
 | maven | `[publish] maven_pages = true`, on tags: the mod's Maven repository on gh-pages |
 | release | `mod-release.yml`: dry run with a `release-preview` artifact on every push, publishing on `v*` tags |
 
@@ -209,7 +209,7 @@ the version; such a run never publishes.
 ## Minecraft versions
 
 Every mod builds from one version matrix, in `common.stonecutter.properties.toml`:
-the Minecraft and NeoForge builds (and Parchment) for each version, and the `panzer`
+the Minecraft and NeoForge builds (and Parchment) for each version, and the `bichal`
 profile listing them. All mods compile against the same builds, so each version is
 downloaded and decompiled once per machine (and per CI cache key), whatever the
 number of mods.
@@ -228,7 +228,7 @@ A mod picks the profile and says what it claims for each version in its own
 
 ```toml
 [stonecutter]
-profile = "panzer"
+profile = "bichal"
 exclude_versions = ["26.1"]          # not ported yet: not built by default
 vcs_version = "1.21.1"               # the version the committed sources are written for
 
@@ -247,24 +247,24 @@ overridden in the mod's block, at the cost of its own download.
 | | |
 |---|---|
 | `./gradlew build -Pstonecutter.versions=1.21.10` | one run, may name an excluded version |
-| `panzer versions use 1.21.10 [--mod velox]` | this checkout: switches Stonecutter to 1.21.10 and writes `.panzer/versions` (git-ignored); Gradle and the IDE then configure, download and build only that |
-| `panzer versions all` | every version again, active version back to `vcs_version` |
-| `panzer versions` | the matrix: per mod `builds`, `excluded`, `local`/`skipped`, and whether NeoForge is downloaded |
-| `panzer versions prefetch [26.1]` | downloads and decompiles each version once (through the first mod that builds it) |
-| `panzer versions status` / `clean [--yes]` | cache sizes; removes NeoForge builds the matrix no longer uses |
-| `panzer versions neoforge [1.21]` | NeoForge builds published per Minecraft version (newest, newest stable), next to the matrix's; to add or bump a version |
-| `panzer versions fabric` | newest Fabric Loader, Loom and Fabric API per Minecraft version, next to the common TOML's |
+| `bichal versions use 1.21.10 [--mod velox]` | this checkout: switches Stonecutter to 1.21.10 and writes `.bichal/versions` (git-ignored); Gradle and the IDE then configure, download and build only that |
+| `bichal versions all` | every version again, active version back to `vcs_version` |
+| `bichal versions` | the matrix: per mod `builds`, `excluded`, `local`/`skipped`, and whether NeoForge is downloaded |
+| `bichal versions prefetch [26.1]` | downloads and decompiles each version once (through the first mod that builds it) |
+| `bichal versions status` / `clean [--yes]` | cache sizes; removes NeoForge builds the matrix no longer uses |
+| `bichal versions neoforge [1.21]` | NeoForge builds published per Minecraft version (newest, newest stable), next to the matrix's; to add or bump a version |
+| `bichal versions fabric` | newest Fabric Loader, Loom and Fabric API per Minecraft version, next to the common TOML's |
 
 The version Stonecutter has active is always configured, even outside the subset.
-CI ignores `.panzer/versions`.
+CI ignores `.bichal/versions`.
 
-### Claiming more versions: `panzer compat`
+### Claiming more versions: `bichal compat`
 
 One jar per build version may serve several Minecraft versions (`game_versions`
 in the mod's `["<version>"]` block, e.g. the 1.21.1 build for 1.21 - 1.21.6).
-`panzer compat` checks such a claim on the real thing: for every claimed version
+`bichal compat` checks such a claim on the real thing: for every claimed version
 other than the built one it installs that version's NeoForge dedicated server
-(newest stable build, see `panzer versions neoforge`), puts the release jar and
+(newest stable build, see `bichal versions neoforge`), puts the release jar and
 its dependencies' jars in `mods/` (their minecraft/neoforge ranges widened, since
 that is what is being checked) and runs the mod's own check:
 
@@ -295,12 +295,12 @@ client_options = ["onboardAccessibility:false", "narrator:0"]
 
 In CI: Mods workflow, action `compat` (optionally `versions` = build versions to
 check), one job per build version, a summary per claimed version and the server
-logs as artifacts. Locally: `panzer compat plan --mod <dir>`, then
-`panzer compat run --mod <dir> --build '<one entry of the plan>'` after
+logs as artifacts. Locally: `bichal compat plan --mod <dir>`, then
+`bichal compat run --mod <dir> --build '<one entry of the plan>'` after
 `./gradlew buildAndCollect`. Claim (`game_versions`, `minecraft_version_range`)
 only what passes.
 
-### Can players join? `panzer_join.py`
+### Can players join? `bichal_join.py`
 
 A mod with a network channel decides who can connect: NeoForge refuses a
 connection when one side has a *required* channel the other lacks, and refuses
@@ -312,7 +312,7 @@ without mods and Mojang's vanilla server with a Tessera client, both together, p
 channel) that must be refused. With Fabric builds it also joins a Fabric server
 (Fabric server launcher + Fabric API) with a Fabric client, a Velox (NeoForge)
 server with a Fabric client, and a Fabric server with a vanilla client, each
-checking that the log says "Celeris engine working". `tools/panzer_join.py --scenarios <json>` runs any
+checking that the log says "Celeris engine working". `tools/bichal_join.py --scenarios <json>` runs any
 other combination of server and client jars.
 
 ## Per-mod version overrides
@@ -338,7 +338,7 @@ add_modules = "jdk.incubator.foreign"
 add_to_runtime = true
 ```
 
-`./gradlew runClient -Ppanzer.jvmModule.ffm.enabled=false` overrides `add_to_runtime`
+`./gradlew runClient -Pbichal.jvmModule.ffm.enabled=false` overrides `add_to_runtime`
 for one run, e.g. to test the fallback path.
 
 ## Native libraries
@@ -355,8 +355,8 @@ ci_linux_script = "native/build-linux.sh"  # optional (CI): builds every Linux p
 ```
 
 Binaries live in `natives/<os>/<arch>/` (committed, or built); `collectNatives` stages
-them into the jar as `natives/<os>-<arch>/`. `-Ppanzer.native.mode=fat|auto|off`,
-`-Ppanzer.native.target=<os>-<arch>` and `-Ppanzer.native.strict=true` (CI: every
+them into the jar as `natives/<os>-<arch>/`. `-Pbichal.native.mode=fat|auto|off`,
+`-Pbichal.native.target=<os>-<arch>` and `-Pbichal.native.strict=true` (CI: every
 platform must be present) control it. Root-project tasks:
 
 | Task | Does |
@@ -365,8 +365,8 @@ platform must be present) control it. Root-project tasks:
 | `buildNatives` | every `buildNative<Name>` |
 | `nativeHeaders<Name>` | zip of `headers`, classifier `native-headers` |
 
-`-Ppanzer.native.build=true` rebuilds the host binary before packaging;
-`-Ppanzer.native.buildType`, `-Ppanzer.native.cmakeArgs`, `-Ppanzer.native.test` tune it.
+`-Pbichal.native.build=true` rebuilds the host binary before packaging;
+`-Pbichal.native.buildType`, `-Pbichal.native.cmakeArgs`, `-Pbichal.native.test` tune it.
 
 ## Publishing (Modrinth, CurseForge, GitHub releases)
 
@@ -387,15 +387,15 @@ A new tool declares `[tools.<name>]` and calls
 `OptimizeTexturesTask` writes a receipt so it stays UP-TO-DATE when the PNGs haven't
 changed.
 
-## Releasing panzer-build-logic itself
+## Releasing bichal-build-logic itself
 
 Mods build against the sibling checkout, so a push to `master` is live for every mod's
 next build (and the Mods workflow syncs the shared files). A `v*` tag additionally
-publishes the plugin to `https://panzerdevorg.github.io/PanzerBuildLogic/maven`.
+publishes the plugin to `https://bichal.github.io/BichalBuildLogic/maven`.
 
 ## A note on the generated `stonecutter.properties.toml`
 
-`panzer.settings` rewrites it only when its content changes, so tasks reading it stay
+`bichal.settings` rewrites it only when its content changes, so tasks reading it stay
 UP-TO-DATE. If a build fails right after it was regenerated and an immediate retry
 succeeds, that is a transient file lock (usually antivirus on Windows);
 `TomlBlockReader.parse` retries with backoff for that reason.

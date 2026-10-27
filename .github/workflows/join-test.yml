@@ -1,7 +1,7 @@
 name: Join test
 
 # Can players get into a server? Builds Celeris (at `celeris-ref`), Velox and
-# Tessera for each build version, then tools/panzer_join.py starts a NeoForge
+# Tessera for each build version, then tools/bichal_join.py starts a NeoForge
 # dedicated server and joins it with a real game client (Quick Play, Xvfb):
 #   - a Velox server (Velox + Celeris), a vanilla client (no NeoForge) -> joins
 #   - a Velox server (Velox + Celeris), a client with no mods       -> joins
@@ -71,27 +71,27 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: panzer-build-logic
+          path: bichal-build-logic
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/Celeris
+          repository: bichal/Celeris
           ref: ${{ inputs.celeris-ref }}
           path: celeris
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/Velox
-          token: ${{ secrets.PANZER_SYNC_TOKEN }}
+          repository: bichal/Velox
+          token: ${{ secrets.BICHAL_SYNC_TOKEN }}
           path: velox
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/Tessera
+          repository: bichal/Tessera
           path: tessera
           persist-credentials: false
       - name: JDKs and Gradle caches
-        uses: ./panzer-build-logic/.github/actions/gradle-env
+        uses: ./bichal-build-logic/.github/actions/gradle-env
         with:
           cache-key: join-${{ matrix.target.version }}
 
@@ -100,7 +100,7 @@ jobs:
           set -euo pipefail
           for mod in celeris velox tessera; do
             # The shared settings of this build logic (repositories its plugins need).
-            cp panzer-build-logic/shared/mod/settings.gradle.kts "$mod/settings.gradle.kts"
+            cp bichal-build-logic/shared/mod/settings.gradle.kts "$mod/settings.gradle.kts"
             # Celeris goes to mavenLocal too: the others build against Celeris's current API.
             tasks="buildAndCollect"; [ "$mod" = celeris ] && tasks="buildAndCollect publishToMavenLocal"
             (cd "$mod" && chmod +x gradlew && ./gradlew $tasks -Pstonecutter.versions="$VERSION" $GRADLE_JDKS -x test --no-watch-fs)
@@ -112,7 +112,7 @@ jobs:
           set -euo pipefail
           mkdir -p old
           curl -sSfL -o "old/celeris-0.2.0+$VERSION.jar" \
-            "https://panzerdevorg.github.io/Celeris/maven/com/panzer/mods/celeris-$VERSION/0.2.0/celeris-$VERSION-0.2.0.jar"
+            "https://bichal.github.io/Celeris/maven/net/bichal/mods/celeris-$VERSION/0.2.0/celeris-$VERSION-0.2.0.jar"
 
       - name: Virtual display
         run: |
@@ -167,7 +167,7 @@ jobs:
 
       - name: Join
         run: |
-          python3 panzer-build-logic/tools/panzer_join.py --minecraft "${{ matrix.target.minecraft }}" \
+          python3 bichal-build-logic/tools/bichal_join.py --minecraft "${{ matrix.target.minecraft }}" \
             --neoforge "${{ matrix.target.neoforge }}" --java "${{ matrix.target.java }}" \
             ${{ matrix.target.neoform && format('--neoform {0}', matrix.target.neoform) || '' }} \
             --fabric-loader "${{ matrix.target.fabric_loader }}" --fabric-api "${{ matrix.target.fabric_api }}" \

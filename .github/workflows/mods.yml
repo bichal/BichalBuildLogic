@@ -1,6 +1,6 @@
 name: Mods
 
-# Control center for every mod in mods.toml, run from panzer-build-logic:
+# Control center for every mod in mods.toml, run from bichal-build-logic:
 #
 #   push to master   when shared/, legal/, tools/, the wrapper or the common TOML
 #                    change: sync, i.e. commit the updated shared files straight
@@ -14,13 +14,13 @@ name: Mods
 #                               they claim (game_versions), on real NeoForge servers
 #                      release  tag v<[mod] version> on each mod's master (needs
 #                               docs/changelogs/<version>.md); the tag's CI publishes
-#                      token    check PANZER_SYNC_TOKEN against every mod: valid,
+#                      token    check BICHAL_SYNC_TOKEN against every mod: valid,
 #                               repositories visible, fetch and push allowed
 #
-# Needs the PANZER_SYNC_TOKEN secret: a fine-grained token with Contents and
+# Needs the BICHAL_SYNC_TOKEN secret: a fine-grained token with Contents and
 # Workflows read/write on the mod repositories (see .env.example). Without it,
-# pushes become checks. Commits are authored by vars.PANZER_GIT_NAME /
-# vars.PANZER_GIT_EMAIL (default bichal <vtorresnun@gmail.com>).
+# pushes become checks. Commits are authored by vars.BICHAL_GIT_NAME /
+# vars.BICHAL_GIT_EMAIL (default bichal <vtorresnun@gmail.com>).
 on:
   push:
     branches: [master]
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     # Job level: a step's `if` cannot read secrets or its own env.
     env:
-      HAS_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN != '' }}
+      HAS_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN != '' }}
     outputs:
       mods: ${{ steps.mods.outputs.mods }}
       action: ${{ steps.mods.outputs.action }}
@@ -70,30 +70,30 @@ jobs:
         run: |
           action="$ACTION"
           if [ "$HAS_TOKEN" != "true" ] && { [ "$action" = sync ] || [ "$action" = release ]; }; then
-            echo "::warning::PANZER_SYNC_TOKEN is not set: '$action' needs it to push to the mod repositories; running 'check' instead."
+            echo "::warning::BICHAL_SYNC_TOKEN is not set: '$action' needs it to push to the mod repositories; running 'check' instead."
             action=check
           fi
           echo "action=$action" >> "$GITHUB_OUTPUT"
-          mods=$(python3 tools/panzer.py mods --json --select "$SELECT")
+          mods=$(python3 tools/bichal.py mods --json --select "$SELECT")
           # Without the token a private mod cannot even be checked out.
           if [ "$HAS_TOKEN" != "true" ] && { [ "$action" = build ] || [ "$action" = compat ] || [ "$action" = check ]; }; then
             skipped=$(echo "$mods" | python3 -c 'import json,sys; print(" ".join(m["repo"] for m in json.load(sys.stdin) if m["private"]))')
-            [ -z "$skipped" ] || echo "::warning::Skipping private $skipped: reading it needs the PANZER_SYNC_TOKEN secret."
+            [ -z "$skipped" ] || echo "::warning::Skipping private $skipped: reading it needs the BICHAL_SYNC_TOKEN secret."
             mods=$(echo "$mods" | python3 -c 'import json,sys; print(json.dumps([m for m in json.load(sys.stdin) if not m["private"]]))')
           fi
           echo "mods=$mods" >> "$GITHUB_OUTPUT"
 
       # A set but unusable token fails here, with the reason in the summary,
       # instead of every mod job failing to check out.
-      - name: Check PANZER_SYNC_TOKEN
+      - name: Check BICHAL_SYNC_TOKEN
         if: >-
           steps.mods.outputs.action == 'sync' || steps.mods.outputs.action == 'release' ||
           ((steps.mods.outputs.action == 'build' || steps.mods.outputs.action == 'compat') && env.HAS_TOKEN == 'true')
         env:
-          PANZER_SYNC_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN }}
+          BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
           SELECT: ${{ inputs.mods || 'all' }}
           READ_ONLY: ${{ (steps.mods.outputs.action == 'build' || steps.mods.outputs.action == 'compat') && '--read-only' || '' }}
-        run: python3 tools/panzer.py token-check --gate --select "$SELECT" $READ_ONLY --summary "$GITHUB_STEP_SUMMARY"
+        run: python3 tools/bichal.py token-check --gate --select "$SELECT" $READ_ONLY --summary "$GITHUB_STEP_SUMMARY"
 
   sync:
     needs: plan
@@ -107,31 +107,31 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: panzer-build-logic
-      # Private mods can only be read with PANZER_SYNC_TOKEN; without it they
+          path: bichal-build-logic
+      # Private mods can only be read with BICHAL_SYNC_TOKEN; without it they
       # are reported, not failed.
       - uses: actions/checkout@v5
         id: checkout
         continue-on-error: true
         with:
           repository: ${{ matrix.mod.repo }}
-          token: ${{ secrets.PANZER_SYNC_TOKEN || github.token }}
+          token: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
       - name: Repository not readable
         if: steps.checkout.outcome != 'success'
         env:
-          HAS_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN != '' }}
+          HAS_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN != '' }}
         run: |
           if [ "$HAS_TOKEN" = true ]; then
-            echo "::error::PANZER_SYNC_TOKEN cannot read ${{ matrix.mod.repo }}. Run this workflow with action 'token' for the reason."
+            echo "::error::BICHAL_SYNC_TOKEN cannot read ${{ matrix.mod.repo }}. Run this workflow with action 'token' for the reason."
             exit 1
           fi
-          echo "::warning::Cannot read ${{ matrix.mod.repo }} without the PANZER_SYNC_TOKEN secret (see .env.example)."
+          echo "::warning::Cannot read ${{ matrix.mod.repo }} without the BICHAL_SYNC_TOKEN secret (see .env.example)."
 
-      # panzer exits 1 when `check` finds differences and 2 on errors; an
+      # bichal exits 1 when `check` finds differences and 2 on errors; an
       # error (or any failure while syncing) stops here, before anything is
       # committed, so a half-written sync is never pushed.
-      - name: panzer ${{ needs.plan.outputs.action }}
+      - name: bichal ${{ needs.plan.outputs.action }}
         id: sync
         if: steps.checkout.outcome == 'success'
         env:
@@ -139,12 +139,12 @@ jobs:
           REPO: ${{ matrix.mod.repo }}
         run: |
           set +e
-          python3 panzer-build-logic/tools/panzer.py "$ACTION" mod --diff --ci 2>&1 | tee sync.log
+          python3 bichal-build-logic/tools/bichal.py "$ACTION" mod --diff --ci 2>&1 | tee sync.log
           rc=${PIPESTATUS[0]}
           set -e
           { echo "### $REPO"; echo '```'; cat sync.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           if [ "$rc" -ge 2 ] || { [ "$ACTION" = sync ] && [ "$rc" -ne 0 ]; }; then
-            echo "::error::panzer $ACTION failed for $REPO (exit $rc); nothing was committed."
+            echo "::error::bichal $ACTION failed for $REPO (exit $rc); nothing was committed."
             exit 1
           fi
           echo "changed=$([ -n "$(git -C mod status --porcelain)" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
@@ -153,13 +153,13 @@ jobs:
         if: steps.checkout.outcome == 'success' && needs.plan.outputs.action == 'sync' && steps.sync.outputs.changed == 'true'
         working-directory: mod
         env:
-          NAME: ${{ vars.PANZER_GIT_NAME || 'bichal' }}
-          EMAIL: ${{ vars.PANZER_GIT_EMAIL || 'vtorresnun@gmail.com' }}
+          NAME: ${{ vars.BICHAL_GIT_NAME || 'bichal' }}
+          EMAIL: ${{ vars.BICHAL_GIT_EMAIL || 'vtorresnun@gmail.com' }}
         run: |
           git config user.name "$NAME"
           git config user.email "$EMAIL"
           git add -A
-          git commit -m "Sync shared files from panzer-build-logic ${GITHUB_SHA::7}"
+          git commit -m "Sync shared files from bichal-build-logic ${GITHUB_SHA::7}"
           git push origin HEAD:master
 
   token:
@@ -168,11 +168,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Check PANZER_SYNC_TOKEN (nothing is changed)
+      - name: Check BICHAL_SYNC_TOKEN (nothing is changed)
         env:
-          PANZER_SYNC_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN }}
+          BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
           SELECT: ${{ inputs.mods || 'all' }}
-        run: python3 tools/panzer.py token-check --select "$SELECT" --summary "$GITHUB_STEP_SUMMARY"
+        run: python3 tools/bichal.py token-check --select "$SELECT" --summary "$GITHUB_STEP_SUMMARY"
 
   build:
     needs: plan
@@ -188,7 +188,7 @@ jobs:
       dry-run: ${{ 'true' }}
       versions: ${{ inputs.versions }}
     secrets:
-      PANZER_SYNC_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN }}
+      BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
     permissions:
       contents: write
 
@@ -218,18 +218,18 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: panzer-build-logic
+          path: bichal-build-logic
       - uses: actions/checkout@v5
         with:
           repository: ${{ matrix.mod.repo }}
-          token: ${{ secrets.PANZER_SYNC_TOKEN }}
+          token: ${{ secrets.BICHAL_SYNC_TOKEN }}
           fetch-depth: 0
           path: mod
       - name: Tag v<version>
         env:
-          NAME: ${{ vars.PANZER_GIT_NAME || 'bichal' }}
-          EMAIL: ${{ vars.PANZER_GIT_EMAIL || 'vtorresnun@gmail.com' }}
+          NAME: ${{ vars.BICHAL_GIT_NAME || 'bichal' }}
+          EMAIL: ${{ vars.BICHAL_GIT_EMAIL || 'vtorresnun@gmail.com' }}
         run: |
           git -C mod config user.name "$NAME"
           git -C mod config user.email "$EMAIL"
-          python3 panzer-build-logic/tools/panzer.py release mod --push
+          python3 bichal-build-logic/tools/bichal.py release mod --push

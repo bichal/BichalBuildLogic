@@ -2,7 +2,7 @@ name: Server performance
 
 # How long a real server tick takes with thousands of dropped items: builds
 # Celeris (with its native libraries) and Velox for each build version, then
-# tools/panzer_mspt.py times a NeoForge dedicated server with `tick sprint`
+# tools/bichal_mspt.py times a NeoForge dedicated server with `tick sprint`
 # three ways: no mods, Velox on Celeris's Java kernel, Velox on its native
 # kernel. Results go to the run summary and the mspt-<version> artifact.
 on:
@@ -59,23 +59,23 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          path: panzer-build-logic
+          path: bichal-build-logic
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/Celeris
+          repository: bichal/Celeris
           ref: ${{ inputs.celeris-ref }}
           path: celeris
           persist-credentials: false
       - uses: actions/checkout@v5
         with:
-          repository: PanzerDevOrg/Velox
+          repository: bichal/Velox
           ref: ${{ inputs.velox-ref }}
-          token: ${{ secrets.PANZER_SYNC_TOKEN }}
+          token: ${{ secrets.BICHAL_SYNC_TOKEN }}
           path: velox
           persist-credentials: false
       - name: JDKs and Gradle caches
-        uses: ./panzer-build-logic/.github/actions/gradle-env
+        uses: ./bichal-build-logic/.github/actions/gradle-env
         with:
           cache-key: perf-${{ matrix.target.version }}
 
@@ -83,11 +83,11 @@ jobs:
         run: |
           set -euo pipefail
           for mod in celeris velox; do
-            cp panzer-build-logic/shared/mod/settings.gradle.kts "$mod/settings.gradle.kts"
+            cp bichal-build-logic/shared/mod/settings.gradle.kts "$mod/settings.gradle.kts"
           done
           # publishToMavenLocal: Velox builds against Celeris's current API.
-          (cd celeris && chmod +x gradlew && ./gradlew buildAndCollect publishToMavenLocal -Pstonecutter.versions="$VERSION" -Ppanzer.loaders=neoforge \
-              -Ppanzer.native.build=true $GRADLE_JDKS -x test --no-watch-fs)
+          (cd celeris && chmod +x gradlew && ./gradlew buildAndCollect publishToMavenLocal -Pstonecutter.versions="$VERSION" -Pbichal.loaders=neoforge \
+              -Pbichal.native.build=true $GRADLE_JDKS -x test --no-watch-fs)
           (cd velox && chmod +x gradlew && ./gradlew buildAndCollect -Pstonecutter.versions="$VERSION" $GRADLE_JDKS -x test --no-watch-fs)
           ls celeris/build/libs/*/ velox/build/libs/*/
           unzip -l celeris/build/libs/*/celeris-*+"$VERSION".jar | grep -E "natives/linux" || true
@@ -97,7 +97,7 @@ jobs:
           set -euo pipefail
           celeris=$(ls celeris/build/libs/*/celeris-*+"$VERSION".jar)
           velox=$(ls velox/build/libs/*/velox-*+"$VERSION".jar)
-          python3 panzer-build-logic/tools/panzer_mspt.py --minecraft "${{ matrix.target.minecraft }}" \
+          python3 bichal-build-logic/tools/bichal_mspt.py --minecraft "${{ matrix.target.minecraft }}" \
             --neoforge "${{ matrix.target.neoforge }}" --java "${{ matrix.target.java }}" \
             --mods "$PWD/$celeris" "$PWD/$velox" --items ${{ inputs.items }} \
             --work mspt --jfr --summary "$GITHUB_STEP_SUMMARY"
