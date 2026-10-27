@@ -9,6 +9,7 @@ import re
 import unittest
 
 from bichal_mod import BUILD_LOGIC, catalog_version, read_toml
+from bichal_sync import same_content
 
 SETTINGS_SCRIPT = BUILD_LOGIC / "shared" / "mod" / "settings.gradle.kts"
 NAMES_FILE = BUILD_LOGIC / "src" / "main" / "kotlin" / "net" / "bichal" / "gradle" / "BuildLogicNames.kt"
@@ -42,6 +43,12 @@ class LayoutTest(unittest.TestCase):
 
     def test_common_toml_has_no_plugin_table(self):
         self.assertNotIn("plugins", read_toml(BUILD_LOGIC / "common.stonecutter.properties.toml"))
+
+    def test_crlf_checkout_is_not_drift(self):
+        self.assertTrue(same_content(b"a\r\nb\r\n", b"a\nb\n"))
+        self.assertTrue(same_content(b"a\nb\n", b"a\nb\n"))
+        self.assertFalse(same_content(b"a\nb\n", b"a\nc\n"))
+        self.assertFalse(same_content(None, b"a\n"))
 
     def test_no_hardcoded_sibling_folder_in_kotlin(self):
         for path in KOTLIN_SOURCES.rglob("*.kt"):
