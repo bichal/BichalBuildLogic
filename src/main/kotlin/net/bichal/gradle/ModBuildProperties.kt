@@ -174,7 +174,8 @@ data class ModBuildProperties(
                 modGroup = req("mod.group"),
                 currentVersion = sc.current.project,
                 requiredJava = requiredJava,
-                neoVersion = overrideOrReq("neo_version"),
+                // A Fabric node of a version NeoForge never released has no NeoForge build.
+                neoVersion = if (fabric) overrideOrOptional("neo_version") else overrideOrReq("neo_version"),
                 mcVersion = overrideOrReq("minecraft_version"),
                 parchmentVersion = overrideOrOptional("parchment_mappings_version"),
                 junitVersion = req("dependencies.junit"),
