@@ -29,6 +29,13 @@ object BichalDiagnostics {
 
     private val VERSION_RANGE_PATTERN = Regex("""^[\[(][^,]*,[^,]*[])]$""")
 
+    /**
+     * `[stonecutter] fabric_only = [...]`: Minecraft versions NeoForge never released. They get
+     * only their `<version>-fabric` node, and need no NeoForge fields.
+     */
+    fun fabricOnlyVersions(stonecutter: TomlBlockReader.Table?): Set<String> =
+        PlatformJars.parseList(stonecutter?.entries?.get("fabric_only")).toSet()
+
     class Report(val errors: List<String>, val warnings: List<String>) {
         val hasErrors: Boolean get() = errors.isNotEmpty()
 
@@ -74,6 +81,7 @@ object BichalDiagnostics {
             errors += "[stonecutter] does not declare any active version."
         }
 
+        val fabricOnly = fabricOnlyVersions(TomlBlockReader.find(tables, "stonecutter"))
         for (version in activeVersions) {
             val block = TomlBlockReader.find(tables, version)
             if (block == null) {
@@ -81,7 +89,9 @@ object BichalDiagnostics {
                         "in either the mod's TOML or the common one."
                 continue
             }
-            for (field in REQUIRED_VERSION_FIELDS) {
+            val required = if (version in fabricOnly) REQUIRED_VERSION_FIELDS.filterNot { it.startsWith("neo_") }
+                           else REQUIRED_VERSION_FIELDS
+            for (field in required) {
                 val value = block.entries[field]
                 if (value.isNullOrBlank()) {
                     errors += "[\"$version\"] does not declare '$field'."

@@ -36,9 +36,8 @@ class BichalSettingsPlugin : Plugin<Settings> {
 
     override fun apply(settings: Settings) {
         val rootDir = settings.rootDir
-        // Set by the shared settings.gradle.kts, which finds the build-logic folder under
-        // any accepted name (see BuildLogicNames) before this plugin runs.
-        val buildLogicDir = settings.extensions.extraProperties.get("bichal.buildLogicDir") as File
+        val buildLogicDir = BuildLogicNames.locate(rootDir)
+            ?: error("[bichal.settings] the build-logic checkout was not found next to this mod (see BuildLogicNames).")
         val commonToml = File(buildLogicDir, "common.stonecutter.properties.toml")
         val modToml = File(rootDir, "mod.stonecutter.properties.toml")
         val mergedToml = File(rootDir, "stonecutter.properties.toml")
@@ -110,9 +109,11 @@ class BichalSettingsPlugin : Plugin<Settings> {
             ?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }
         val loaders = requested?.let { r -> declared.filter { it in r } } ?: declared
         val active = activeVersion(settings)
+        val fabricOnly = BichalDiagnostics.fabricOnlyVersions(stonecutter)
         return buildMap {
             for (version in versions) {
-                if (NEOFORGE in loaders || version == active) put(version, version)
+                val neoforge = NEOFORGE in loaders && version !in fabricOnly
+                if (neoforge || version == active) put(version, version)
                 if (FABRIC in loaders) put("$version-$FABRIC", version)
             }
         }
