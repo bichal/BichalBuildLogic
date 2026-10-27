@@ -17,6 +17,7 @@ from pathlib import Path
 BUILD_LOGIC = Path(__file__).resolve().parent.parent
 MOD_TOML = "mod.stonecutter.properties.toml"
 COMMON_TOML = "common.stonecutter.properties.toml"
+DEFAULT_TOKEN = "BICHAL_SYNC_TOKEN"
 
 
 class BichalError(Exception):
@@ -204,6 +205,7 @@ class Registered:
     repo: str  # Owner/Repo on GitHub
     path: Path | None  # local checkout, if any
     private: bool = False  # only readable with BICHAL_SYNC_TOKEN in bichal-build-logic's CI
+    token: str = DEFAULT_TOKEN  # the secret that reads and pushes this mod (mods.toml `token`)
 
 
 def registry(build_logic: Path = BUILD_LOGIC) -> list[Registered]:
@@ -216,5 +218,8 @@ def registry(build_logic: Path = BUILD_LOGIC) -> list[Registered]:
         folder = entry.get("folder", entry["repo"].split("/")[-1])
         candidates = [base / folder, base / folder.lower(), base / key]
         path = next((c for c in candidates if (c / MOD_TOML).is_file()), None)
-        mods.append(Registered(key.lower(), entry["repo"], path, bool(entry.get("private", False))))
+        token = entry.get("token", DEFAULT_TOKEN)
+        if not re.fullmatch(r"[A-Z][A-Z0-9_]*_SYNC_TOKEN", token):
+            raise BichalError(f"mods.toml [mods.{key}] token = {token!r}: expected a name like PANZER_SYNC_TOKEN")
+        mods.append(Registered(key.lower(), entry["repo"], path, bool(entry.get("private", False)), token))
     return mods

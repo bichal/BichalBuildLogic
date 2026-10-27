@@ -20,6 +20,10 @@ on:
         description: Only these build versions (comma-separated)
         type: string
         default: ""
+    secrets:
+      BICHAL_SYNC_TOKEN:
+        description: Reads the mod repository (a private one needs it); the caller picks the token its mod uses
+        required: false
 
 env:
   BICHAL: bichal-build-logic/tools/bichal.py
