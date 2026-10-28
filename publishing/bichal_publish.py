@@ -268,6 +268,9 @@ def range_text(versions: list[str]) -> str:
 # --------------------------------------------------------------------------- description
 
 PUBLISH_OFF = re.compile(r"<!--\s*publish:off\s*-->.*?<!--\s*publish:on\s*-->\n?", re.S)
+# <!-- publish:only <site> --> ... <!-- /publish:only --> keeps the block for that site
+# only (GitHub shows every block: it renders the file as it is).
+PUBLISH_ONLY = re.compile(r"<!--\s*publish:only\s+(\w+)\s*-->\n?(.*?)<!--\s*/publish:only\s*-->\n?", re.S)
 # <!-- bichal:<block> --> markers around README blocks `bichal sync` maintains.
 BICHAL_MARKER = re.compile(r"[ \t]*<!--\s*/?bichal:[\w-]+\s*-->[ \t]*\n?")
 MD_LINK = re.compile(r"(!?)\[([^\]]*)\]\(([^)\s]+)((?:\s+\"[^\"]*\")?)\)")
@@ -306,6 +309,7 @@ def published_markdown(readme: str, cfg: ModConfig, site: str = "modrinth") -> s
     """The README as a mod site gets it: GitHub-only blocks removed, links made absolute,
     dependency links pointed at that site."""
     text = BICHAL_MARKER.sub("", PUBLISH_OFF.sub("", readme))
+    text = PUBLISH_ONLY.sub(lambda m: m.group(2) if m.group(1) == site else "", text)
 
     def md(m: re.Match) -> str:
         bang, label, url, title = m.groups()

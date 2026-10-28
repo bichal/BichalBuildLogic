@@ -128,6 +128,19 @@ class Description(unittest.TestCase):
         self.assertNotIn("bichal:footer", md)
         self.assertIn("Made by **Bichal**", md)
 
+    def test_publish_only_blocks_per_site(self):
+        readme = ("<!-- publish:only modrinth -->\n[Modrinth](https://modrinth.com/mod/x)\n<!-- /publish:only -->\n"
+                  "<!-- publish:only curseforge -->\n[CurseForge](https://www.curseforge.com/minecraft/mc-mods/x)\n<!-- /publish:only -->\n"
+                  "Text stays.\n")
+        mr = pp.published_markdown(readme, self.cfg, "modrinth")
+        cf = pp.published_markdown(readme, self.cfg, "curseforge")
+        self.assertIn("[Modrinth]", mr)
+        self.assertNotIn("CurseForge", mr)
+        self.assertIn("[CurseForge]", cf)
+        self.assertNotIn("Modrinth", cf)
+        self.assertIn("Text stays.", mr)
+        self.assertIn("Text stays.", cf)
+
     def test_dependency_links_per_site(self):
         self.assertIn("[Celeris](https://modrinth.com/mod/sQphaM3I)", pp.published_markdown(README, self.cfg, "modrinth"))
         self.assertIn("[Celeris](https://www.curseforge.com/minecraft/mc-mods/celeris)",
