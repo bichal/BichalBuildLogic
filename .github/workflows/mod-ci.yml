@@ -313,12 +313,14 @@ jobs:
               { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends "${missing[@]}" > /dev/null; }
           fi
 
-      # verify-jni-symbols.sh reads Mach-O natives (.dylib) with llvm-nm, which the
-      # runner image does not ship. Install LLVM only when a .dylib is staged.
-      - name: LLVM tools for Mach-O natives
+      # verify-jni-symbols.sh reads Mach-O natives (.dylib) with llvm-nm and PE
+      # natives (.dll) with llvm-readobj; the runner image ships neither. Install
+      # LLVM only when such a library is staged and a tool is missing.
+      - name: LLVM tools for Mach-O and PE natives
         if: needs.plan.outputs.has-natives == 'true'
         run: |
-          if find . -name '*.dylib' -print -quit | grep -q . && ! command -v llvm-nm >/dev/null 2>&1; then
+          if find . \( -name '*.dylib' -o -name '*.dll' \) -print -quit | grep -q . &&
+             ! { command -v llvm-nm && command -v llvm-readobj; } >/dev/null 2>&1; then
             sudo apt-get install -y -qq --no-install-recommends llvm > /dev/null ||
               { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends llvm > /dev/null; }
           fi
