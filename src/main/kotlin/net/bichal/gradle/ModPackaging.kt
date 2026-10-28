@@ -42,8 +42,11 @@ object ModPackaging {
                 ?: TomlBlockReader.find(tables, "mod")?.entries?.get("license")
                 ?: throw GradleException("[bichal] Declare the code license as [legal] code (SPDX id).")
             put("mod_license", license)
-            put("loader_version_range", props.req(project, "neoforge.loader_version_range"))
-            put("neo_version_range", props.req(project, "neo_version_range"))
+            // NeoForge metadata only: fabric_only versions (no NeoForge release) have none.
+            if (!props.isFabric) {
+                put("loader_version_range", props.req(project, "neoforge.loader_version_range"))
+                put("neo_version_range", props.req(project, "neo_version_range"))
+            }
             put("minecraft_version_range", props.req(project, "minecraft_version_range"))
             for (table in tables.filter { it.path.size == 2 && it.path[0] == "depends_on" }) {
                 val id = table.path[1]
