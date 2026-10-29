@@ -71,7 +71,6 @@ jobs:
         with:
           repository: bichal/Velox
           ref: ${{ inputs.velox-ref }}
-          token: ${{ secrets.BICHAL_SYNC_TOKEN }}
           path: velox
           persist-credentials: false
       - name: JDKs and Gradle caches
