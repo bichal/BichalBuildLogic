@@ -69,6 +69,8 @@ lines = [
   ".env",
   "repomix*",
   "__pycache__/",
+  "# written by `bichal vendor` next to fetched sources",
+  ".vendored.json",
 ]
 
 # README blocks between <!-- bichal:<name> --> and <!-- /bichal:<name> -->,

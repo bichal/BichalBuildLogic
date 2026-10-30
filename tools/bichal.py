@@ -5,6 +5,7 @@
   bichal sync [MOD...|--all]       write the shared files (wrapper, settings, CI callers,
                                    licenses, NOTICE, README blocks, .gitignore block)
   bichal check [MOD...|--all]      same, but only report what differs (exit 1 if anything)
+  bichal vendor [MOD...] [NAME]    fetch the third-party sources a mod's [vendor.*] pins (CI does it before building natives)
   bichal new DIR --id ID           scaffold a new mod next to bichal-build-logic, then sync it
   bichal release MOD [--push]      tag v<version> (changelog required); CI publishes the tag
   bichal secrets [--org ORG]       copy tokens from .env into GitHub Actions secrets (gh CLI);
@@ -42,6 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "publishing"))
 
 import bichal_ci  # noqa: E402
 import bichal_sync  # noqa: E402
+import bichal_vendor  # noqa: E402
 from bichal_mod import BUILD_LOGIC, DEFAULT_TOKEN, MOD_TOML, BichalError, load_dotenv, load_mod, registry  # noqa: E402
 
 SECRETS = ("MODRINTH_TOKEN", "CURSEFORGE_TOKEN", "BICHAL_SYNC_TOKEN", "PANZER_SYNC_TOKEN")
@@ -116,6 +118,13 @@ def cmd_sync(args, write: bool) -> int:
             print(f"::warning::{mod.name} differs from bichal-build-logic's shared files ({files}). "
                   f"Run `bichal sync` (or the Mods workflow in BichalBuildLogic) to update them.")
     return 1 if (dirty and not write) else 0
+
+
+def cmd_vendor(args) -> int:
+    failed = 0
+    for root in resolve_mods(args.mods, args.all):
+        failed |= bichal_vendor.vendor(load_mod(root), args.only, check=args.check, force=args.force)
+    return failed
 
 
 def cmd_mods(args) -> int:
@@ -398,6 +407,12 @@ def main(argv: list[str] | None = None) -> int:
         s.add_argument("--all", action="store_true", help="every mod in mods.toml with a local checkout")
         s.add_argument("--diff", action="store_true", help="show what changes")
         s.add_argument("--ci", action="store_true", help="GitHub annotations instead of plain notes")
+    s = sub.add_parser("vendor", help="fetch the pinned third-party sources of mods")
+    s.add_argument("mods", nargs="*")
+    s.add_argument("--all", action="store_true")
+    s.add_argument("--only", action="append", help="just this [vendor.<name>] (repeatable)")
+    s.add_argument("--check", action="store_true", help="report what is missing or out of date, fetch nothing")
+    s.add_argument("--force", action="store_true", help="fetch again even when the marker says it is current")
     s = sub.add_parser("mods", help="list the mods")
     s.add_argument("--json", action="store_true")
     s.add_argument("--select", default="all", help="comma-separated keys, or all")
@@ -451,7 +466,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command in ("sync", "check"):
             return cmd_sync(args, write=args.command == "sync")
-        return {"mods": cmd_mods, "new": cmd_new, "release": cmd_release, "secrets": cmd_secrets,
+        return {"mods": cmd_mods, "vendor": cmd_vendor, "new": cmd_new, "release": cmd_release, "secrets": cmd_secrets,
                 "doctor": cmd_doctor, "token-check": cmd_token, "versions": cmd_versions, "compat": cmd_compat,
                 "ci": cmd_ci}[args.command](args)
     except BichalError as e:
