@@ -55,7 +55,7 @@ class LayoutTest(unittest.TestCase):
 
     def test_each_mod_names_its_token(self):
         tokens = {m.key: m.token for m in registry()}
-        self.assertEqual(tokens["dice_and_delish"], "PANZER_SYNC_TOKEN")
+        self.assertEqual(tokens["dice_and_delish"], "BICHAL_SYNC_TOKEN")
         self.assertEqual(tokens["celeris"], "BICHAL_SYNC_TOKEN")
         self.assertEqual(tokens["velox"], "BICHAL_SYNC_TOKEN")
 
