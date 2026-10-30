@@ -318,7 +318,8 @@ class Selection(unittest.TestCase):
         self.assertEqual(bichal.main(["mods", "--select", "nope"]), 2)
 
     def test_private_flag(self):
-        self.assertTrue(next(m for m in bichal.select_mods("velox")).private)
+        self.assertTrue(next(m for m in bichal.select_mods("halo")).private)
+        self.assertFalse(next(m for m in bichal.select_mods("velox")).private)
 
 
 PROFILE_TOML = textwrap.dedent('''
