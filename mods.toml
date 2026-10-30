@@ -17,6 +17,9 @@ repo = "bichal/Tessera"
 
 [mods.velox]
 repo = "bichal/velox"
+
+[mods.halo]
+repo = "bichal/Halo"
 private = true
 
 [mods.dice_and_delish]
