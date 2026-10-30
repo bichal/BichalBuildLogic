@@ -48,3 +48,11 @@ license = "MIT OR Unlicense"
 copyright = "Copyright (c) 2020-2021 Richard Geldreich, Jr."
 text = "third-party/bc7enc_rdo.txt"
 bundled_as = "sources compiled into the bundled native library"
+
+[components.astcenc]
+name = "ASTC Encoder (astcenc)"
+url = "https://github.com/ARM-software/astc-encoder"
+license = "Apache-2.0"
+copyright = "Copyright 2011-2026 Arm Limited"
+text = "third-party/astcenc.txt"
+bundled_as = "sources compiled into the bundled native library"
