@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """`bichal mspt`: how long does a real server tick take with many dropped items?
 Starts a NeoForge dedicated server per configuration (no mods; the given mods
-with Celeris's Java physics kernel; the same with its native kernel), spawns
+with Celeris's Java physics kernel; the same with its native kernel through JNI;
+and through FFM), spawns
 --items item entities over forced-loaded flat ground and times the server with
 vanilla's `tick sprint`, which runs ticks back to back and reports the average
 milliseconds per tick.
@@ -42,11 +43,13 @@ MARK = "bichal-mspt-mark"
 
 
 def configurations(java: int, mods: list[str]) -> list[dict]:
-    flags = ["--add-modules=jdk.incubator.vector"] + (["--enable-preview"] if java == 21 else [])
+    # FFM needs --enable-preview on Java 21 (1.21.x); JNI and the Java kernel need no flag.
+    ffm = ["--add-modules=jdk.incubator.vector"] + (["--enable-preview"] if java == 21 else [])
     return [
         {"name": "NeoForge, no mods", "mods": [], "jvm": []},
         {"name": "Velox, Java kernel", "mods": mods, "jvm": ["-Dceleris.physics.engine=java"]},
-        {"name": "Velox, native kernel", "mods": mods, "jvm": flags},
+        {"name": "Velox, JNI kernel", "mods": mods, "jvm": ["-Dceleris.physics.engine=jni"]},
+        {"name": "Velox, FFM kernel", "mods": mods, "jvm": ["-Dceleris.physics.engine=ffm", *ffm]},
     ]
 
 
