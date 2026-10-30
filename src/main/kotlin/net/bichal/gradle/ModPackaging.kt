@@ -171,7 +171,12 @@ object ModPackaging {
                     content { includeGroup(group) }
                 }
             }
-            project.dependencies.add(table.entries["configuration"] ?: "implementation", "$coordinates:$version")
+            // Remapping Loom (Fabric 1.21.x) only remaps mods that come in through mod* configurations.
+            val remapped = props.isFabric && props.mcVersion.startsWith("1.")
+            project.dependencies.add(
+                table.entries["configuration"] ?: if (remapped) "modImplementation" else "implementation",
+                "$coordinates:$version"
+            )
         }
     }
 
