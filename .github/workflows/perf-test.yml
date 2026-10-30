@@ -3,8 +3,9 @@ name: Server performance
 # How long a real server tick takes with thousands of dropped items: builds
 # Celeris (with its native libraries) and Velox for each build version, then
 # tools/bichal_mspt.py times a NeoForge dedicated server with `tick sprint`
-# three ways: no mods, Velox on Celeris's Java kernel, Velox on its native
-# kernel. Results go to the run summary and the mspt-<version> artifact.
+# four ways: no mods, Velox on Celeris's Java kernel, Velox on its native kernel
+# through JNI, and through FFM. Results go to the run summary and the
+# mspt-<version> artifact.
 on:
   workflow_dispatch:
     inputs:
