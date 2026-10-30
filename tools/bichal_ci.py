@@ -75,6 +75,10 @@ def natives_key(mod: Mod, matrix: list[dict]) -> str:
     import hashlib
     digest = hashlib.sha256(NATIVES_CACHE_SALT.encode())
     digest.update(json.dumps(matrix, sort_keys=True).encode())
+    # What [vendor.*] fetches is part of what gets built: a new pin or patch is a new key.
+    from bichal_vendor import fingerprint as vendor_fingerprint
+    for spec in sorted(mod.config.get("vendor", {}).items()):
+        digest.update(spec[0].encode() + vendor_fingerprint(mod, spec[1]).encode())
     roots: set[Path] = set()
     for spec in mod.natives.values():
         for key in ("cmake_dir", "ci_prepare", "ci_linux_script"):

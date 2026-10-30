@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 import textwrap
 import unittest
@@ -11,6 +12,7 @@ from pathlib import Path
 import bichal
 import bichal_ci
 import bichal_sync
+import bichal_vendor
 import bichal_versions
 from bichal_legal import Legal
 from bichal_mod import BUILD_LOGIC, BichalError, load_mod, merge_tables, parse_dotenv
@@ -207,6 +209,71 @@ class Ci(unittest.TestCase):
         self.assertEqual(key, bichal_ci.plan(load_mod(self.root))["natives-key"], "build output is not a source")
         (cmake_dir / "kernel.c").write_text("int x;")
         self.assertNotEqual(key, bichal_ci.plan(load_mod(self.root))["natives-key"])
+
+    def upstream(self) -> tuple[str, str]:
+        """A local git repository standing in for a third-party library: (url, commit)."""
+        repo = self.root.parent / "upstream"
+        (repo / "Source").mkdir(parents=True)
+        (repo / "Source" / "lib_a.cpp").write_text("int a;\n")
+        (repo / "Source" / "lib_cli_main.cpp").write_text("int main;\n")
+        (repo / "Source" / "lib.h").write_text("#pragma once\n")
+        (repo / "LICENSE.txt").write_text("Apache\n")
+        for cmd in (["init", "-q"], ["add", "."], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "x"]):
+            subprocess.run(["git", "-C", str(repo), *cmd], check=True, capture_output=True)
+        commit = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], check=True, capture_output=True,
+                                text=True).stdout.strip()
+        return str(repo), commit
+
+    def vendored_mod(self, extra: str = ""):
+        url, commit = self.upstream()
+        toml = self.root / "mod.stonecutter.properties.toml"
+        toml.write_text(toml.read_text() + textwrap.dedent(f'''
+            [vendor.lib]
+            git = "{url}"
+            commit = "{commit}"
+            dest = "native/vendor/lib"
+            copy = ["Source/*.cpp", "Source/*.h"]
+            skip = ["*_cli_*"]
+            rename = {{ "LICENSE.txt" = "LICENSE" }}
+            {extra}
+        '''))
+        return load_mod(self.root)
+
+    def test_vendor_copies_flat_skips_and_is_idempotent(self):
+        mod = self.vendored_mod()
+        self.assertEqual(bichal_vendor.vendor(mod, check=True), 1)
+        self.assertEqual(bichal_vendor.vendor(mod), 0)
+        dest = self.root / "native/vendor/lib"
+        self.assertEqual(sorted(p.name for p in dest.iterdir() if p.name != bichal_vendor.MARKER),
+                         ["LICENSE", "lib.h", "lib_a.cpp"])
+        self.assertEqual(bichal_vendor.vendor(mod, check=True), 0)
+        (dest / "lib_a.cpp").write_text("changed")
+        self.assertFalse(bichal_vendor.apply(mod, "lib", mod.config["vendor"]["lib"]), "marker says current")
+        self.assertTrue(bichal_vendor.apply(mod, "lib", mod.config["vendor"]["lib"], force=True))
+        self.assertEqual((dest / "lib_a.cpp").read_text(), "int a;\n")
+
+    def test_vendor_patch_and_pin_change_refetch(self):
+        patch = self.root / "native" / "lib.patch"
+        patch.parent.mkdir(parents=True, exist_ok=True)
+        patch.write_text("--- a/lib_a.cpp\n+++ b/lib_a.cpp\n@@ -1 +1 @@\n-int a;\n+int b;\n")
+        mod = self.vendored_mod('patches = ["native/lib.patch"]')
+        bichal_vendor.vendor(mod)
+        self.assertEqual((self.root / "native/vendor/lib/lib_a.cpp").read_text(), "int b;\n")
+        before = bichal_vendor.fingerprint(mod, mod.config["vendor"]["lib"])
+        patch.write_text(patch.read_text().replace("int b", "int c"))
+        self.assertNotEqual(before, bichal_vendor.fingerprint(mod, mod.config["vendor"]["lib"]))
+        self.assertEqual(bichal_vendor.vendor(load_mod(self.root), check=True), 1, "a changed patch is out of date")
+
+    def test_vendor_reports_a_pattern_that_matches_nothing(self):
+        mod = self.vendored_mod()
+        spec = dict(mod.config["vendor"]["lib"], copy=["Nope/*.cpp"])
+        with self.assertRaises(BichalError):
+            bichal_vendor.apply(mod, "lib", spec, force=True)
+
+    def test_vendor_changes_the_natives_cache_key(self):
+        before = bichal_ci.plan(self.mod)["natives-key"]
+        after = bichal_ci.plan(self.vendored_mod())["natives-key"]
+        self.assertNotEqual(before, after)
 
     def write_jars(self, natives_in_universal: list[str]):
         libs = self.root / "build" / "libs" / "1.0.0"

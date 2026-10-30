@@ -59,6 +59,7 @@ from anywhere: `./bichal` on Linux/macOS, `bichal` (bichal.cmd) on Windows.
 | Command | Does |
 |---|---|
 | `bichal mods` | lists the mods in `mods.toml`, their local checkout and whether they are in sync |
+| `bichal vendor [MOD...]` | fetches the pinned third-party sources of the mod's `[vendor.*]` (see [Native libraries](#native-libraries)) |
 | `bichal sync [MOD...] [--all]` | writes the shared files into mod checkouts (`--diff` shows the changes) |
 | `bichal check [MOD...] [--all]` | the same as a report; exits 1 if anything differs |
 | `bichal new ../Shiny --id shiny` | scaffolds a new mod (TOML, build script, main class, README, changelog) and syncs it |
@@ -356,9 +357,30 @@ headers = "native/include"      # optional: zipped as the `native-headers` artif
 platforms = ["linux-x86_64", "linux-aarch64", "windows-x86_64", "macos-x86_64", "macos-aarch64"]
 required = false                # optional: the mod runs without it
 jar_name_linux = "libfoo.so.1"  # optional: name inside the jar, per OS
-ci_prepare = "native/fetch.sh"  # optional (CI): run before building
+ci_prepare = "native/prepare.sh"  # optional (CI): run before building (third-party sources: use [vendor.*])
 ci_linux_script = "native/build-linux.sh"  # optional (CI): builds every Linux platform
 ```
+
+### Third-party sources: `[vendor.*]`
+
+Code a native library compiles but the repository should not carry is pinned in the mod's
+TOML and fetched by `bichal vendor` (CI runs it before every native build):
+
+```toml
+[vendor.astcenc]
+git     = "https://github.com/ARM-software/astc-encoder.git"
+commit  = "d0f91386350222fcbf6da533c0f7a3f9b5c6b783"
+dest    = "native/vendor/astcenc"
+copy    = ["Source/astcenc*.cpp", "Source/astcenc*.h"]   # globs from the repository root, copied flat
+skip    = ["astcenccli_*"]                               # file-name globs left out of `copy`
+rename  = { "LICENSE.txt" = "LICENSE" }                  # single files: name upstream = name in dest
+patches = ["native/vendor/patches/astcenc.patch"]        # unified diffs relative to the mod, applied last
+```
+
+`dest` keeps a `.vendored.json` marker (the pin, the patches' content and the files written): an
+up-to-date directory is not touched, and a new pin replaces exactly what the old one wrote.
+`bichal vendor [MOD...] [--only NAME] [--check] [--force]`; the pins and patches are part of the
+natives build cache key.
 
 Binaries live in `natives/<os>/<arch>/` (committed, or built); `collectNatives` stages
 them into the jar as `natives/<os>-<arch>/`. `-Pbichal.native.mode=fat|auto|off`,

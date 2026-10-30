@@ -8,7 +8,7 @@ name: Mod CI (reusable)
 #            mod's shared files differ from bichal-build-logic (`bichal check`)
 #   natives  every CMake-backed [natives.<name>] platform, built and self-tested
 #            on its own runner (ci_linux_script: all Linux platforms in one job,
-#            ci_prepare: run first, e.g. to vendor sources). Skipped when the
+#            ci_prepare: run first; [vendor.*] sources are fetched before it). Skipped when the
 #            native sources are unchanged since a build cached on main; a
 #            v* tag always builds them afresh.
 #   build    every Minecraft version with tests; universal, per-system and
@@ -159,6 +159,16 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+
+      # The pinned third-party sources of [vendor.*] (nothing to do without any).
+      - uses: actions/checkout@v5
+        with:
+          repository: bichal/BichalBuildLogic
+          ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
+          path: bichal-build-logic
+          persist-credentials: false
+      - name: Vendor third-party sources
+        run: python3 "../$BICHAL" vendor .
 
       - name: Prepare (${{ matrix.prepare }})
         if: matrix.prepare != ''
