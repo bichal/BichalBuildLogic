@@ -50,6 +50,8 @@ def configurations(java: int, mods: list[str]) -> list[dict]:
         {"name": "Velox, Java kernel", "mods": mods, "jvm": ["-Dceleris.physics.engine=java"]},
         {"name": "Velox, JNI kernel", "mods": mods, "jvm": ["-Dceleris.physics.engine=jni"]},
         {"name": "Velox, FFM kernel", "mods": mods, "jvm": ["-Dceleris.physics.engine=ffm", *ffm]},
+        # No engine flag: shows which engine a player gets (Velox asks for the native kernel itself).
+        {"name": "Velox, default engine", "mods": mods, "jvm": []},
     ]
 
 
