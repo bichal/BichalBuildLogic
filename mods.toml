@@ -7,7 +7,7 @@
 #   private: true for private repositories (only readable with BICHAL_SYNC_TOKEN)
 #   token:  the secret that reads and pushes this mod. Default BICHAL_SYNC_TOKEN;
 #           a repository owned by another account or organization needs its own
-#           token (for example PANZER_SYNC_TOKEN for PanzerDevOrg repositories).
+#           token (for example OTHER_SYNC_TOKEN, passed to the tools by name).
 
 [mods.celeris]
 repo = "bichal/Celeris"
@@ -25,7 +25,6 @@ private = true
 [mods.dice_and_delish]
 repo = "PanzerDevOrg/DiceAndDelish"
 folder = "DiceAndDelish"
-token = "PANZER_SYNC_TOKEN"
 
 [mods.bplb]
 repo = "bichal/BetterPlayerLocatorBar"
