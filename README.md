@@ -64,7 +64,7 @@ from anywhere: `./bichal` on Linux/macOS, `bichal` (bichal.cmd) on Windows.
 | `bichal check [MOD...] [--all]` | the same as a report; exits 1 if anything differs |
 | `bichal new ../Shiny --id shiny` | scaffolds a new mod (TOML, build script, main class, README, changelog) and syncs it |
 | `bichal release celeris --push` | checks the changelog, a clean tree and the shared files, then pushes `v<version>`; the tag's CI publishes |
-| `bichal secrets [--org bichal]` | copies `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, `BICHAL_SYNC_TOKEN` from `.env` into GitHub Actions secrets (needs `gh`); the sync tokens go to this repository only |
+| `bichal secrets [--org bichal]` | copies `MODRINTH_TOKEN`, `CURSEFORGE_TOKEN`, `BICHAL_SYNC_TOKEN`, `PANZER_SYNC_TOKEN` from `.env` into GitHub Actions secrets (needs `gh`); the sync tokens go to this repository only |
 | `bichal publish ...` | the release publisher, see [`publishing/README.md`](publishing/README.md) |
 | `bichal doctor` | checks Python, git/gh/java, tokens and mod checkouts |
 | `bichal token-check` | checks each mod's sync token (`BICHAL_SYNC_TOKEN` by default, see `token` in `mods.toml`) against the mods that use it: valid, expiry, repositories visible, fetch and push allowed (changes nothing) |
@@ -77,7 +77,8 @@ repository (`../Celeris`, `../Tessera`, `../velox`), or under `BICHAL_MODS_DIR`.
 
 Copy `.env.example` to `.env` (git-ignored) and fill in what you use: the Modrinth and
 CurseForge tokens for local publishing, `BICHAL_SYNC_TOKEN` for the Mods workflow,
-`BICHAL_MODS_DIR`. `bichal` and the publisher read `.env` from the current directory,
+`PANZER_SYNC_TOKEN` for mods owned by another organization (`token = "..."` in its
+`mods.toml` entry), `BICHAL_MODS_DIR`. `bichal` and the publisher read `.env` from the current directory,
 the mod and this repository; real environment variables always win. `bichal secrets`
 then sets the same tokens on GitHub, so they live in one file.
 

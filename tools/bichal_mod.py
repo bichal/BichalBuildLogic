@@ -220,6 +220,6 @@ def registry(build_logic: Path = BUILD_LOGIC) -> list[Registered]:
         path = next((c for c in candidates if (c / MOD_TOML).is_file()), None)
         token = entry.get("token", DEFAULT_TOKEN)
         if not re.fullmatch(r"[A-Z][A-Z0-9_]*_SYNC_TOKEN", token):
-            raise BichalError(f"mods.toml [mods.{key}] token = {token!r}: expected a name like OTHER_SYNC_TOKEN")
+            raise BichalError(f"mods.toml [mods.{key}] token = {token!r}: expected a name like PANZER_SYNC_TOKEN")
         mods.append(Registered(key.lower(), entry["repo"], path, bool(entry.get("private", False)), token))
     return mods

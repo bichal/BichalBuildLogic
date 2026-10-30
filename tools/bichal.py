@@ -46,7 +46,7 @@ import bichal_sync  # noqa: E402
 import bichal_vendor  # noqa: E402
 from bichal_mod import BUILD_LOGIC, DEFAULT_TOKEN, MOD_TOML, BichalError, load_dotenv, load_mod, registry  # noqa: E402
 
-SECRETS = ("MODRINTH_TOKEN", "CURSEFORGE_TOKEN", "BICHAL_SYNC_TOKEN")
+SECRETS = ("MODRINTH_TOKEN", "CURSEFORGE_TOKEN", "BICHAL_SYNC_TOKEN", "PANZER_SYNC_TOKEN")
 
 
 def resolve_mods(names: list[str], all_mods: bool) -> list[Path]:

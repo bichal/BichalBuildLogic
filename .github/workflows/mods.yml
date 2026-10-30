@@ -17,7 +17,8 @@ name: Mods
 #                      token    check BICHAL_SYNC_TOKEN against every mod: valid,
 #                               repositories visible, fetch and push allowed
 #
-# Needs the BICHAL_SYNC_TOKEN secret: a fine-grained token with Contents and
+# Needs the BICHAL_SYNC_TOKEN secret (and PANZER_SYNC_TOKEN for a mod whose
+# `token` in mods.toml says so): a fine-grained token with Contents and
 # Workflows read/write on the mod repositories (see .env.example). Without it,
 # pushes become checks. Commits are authored by vars.BICHAL_GIT_NAME /
 # vars.BICHAL_GIT_EMAIL (default: the bichal GitHub noreply address; GitHub
@@ -92,6 +93,7 @@ jobs:
           ((steps.mods.outputs.action == 'build' || steps.mods.outputs.action == 'compat') && env.HAS_TOKEN == 'true')
         env:
           BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
+          PANZER_SYNC_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN }}
           SELECT: ${{ inputs.mods || 'all' }}
           READ_ONLY: ${{ (steps.mods.outputs.action == 'build' || steps.mods.outputs.action == 'compat') && '--read-only' || '' }}
         run: python3 tools/bichal.py token-check --gate --select "$SELECT" $READ_ONLY --summary "$GITHUB_STEP_SUMMARY"
@@ -116,7 +118,7 @@ jobs:
         continue-on-error: true
         with:
           repository: ${{ matrix.mod.repo }}
-          token: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
+          token: ${{ matrix.mod.token == 'PANZER_SYNC_TOKEN' && secrets.PANZER_SYNC_TOKEN || secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
       - name: Repository not readable
         if: steps.checkout.outcome != 'success'
@@ -172,6 +174,7 @@ jobs:
       - name: Check BICHAL_SYNC_TOKEN (nothing is changed)
         env:
           BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
+          PANZER_SYNC_TOKEN: ${{ secrets.PANZER_SYNC_TOKEN }}
           SELECT: ${{ inputs.mods || 'all' }}
         run: python3 tools/bichal.py token-check --select "$SELECT" --summary "$GITHUB_STEP_SUMMARY"
 
@@ -189,7 +192,7 @@ jobs:
       dry-run: ${{ 'true' }}
       versions: ${{ inputs.versions }}
     secrets:
-      BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
+      BICHAL_SYNC_TOKEN: ${{ matrix.mod.token == 'PANZER_SYNC_TOKEN' && secrets.PANZER_SYNC_TOKEN || secrets.BICHAL_SYNC_TOKEN }}
     permissions:
       contents: write
 
@@ -206,7 +209,7 @@ jobs:
       build-logic-ref: ${{ github.sha }}
       versions: ${{ inputs.versions }}
     secrets:
-      BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
+      BICHAL_SYNC_TOKEN: ${{ matrix.mod.token == 'PANZER_SYNC_TOKEN' && secrets.PANZER_SYNC_TOKEN || secrets.BICHAL_SYNC_TOKEN }}
 
   release:
     needs: plan
@@ -224,7 +227,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           repository: ${{ matrix.mod.repo }}
-          token: ${{ secrets.BICHAL_SYNC_TOKEN }}
+          token: ${{ matrix.mod.token == 'PANZER_SYNC_TOKEN' && secrets.PANZER_SYNC_TOKEN || secrets.BICHAL_SYNC_TOKEN }}
           fetch-depth: 0
           path: mod
       - name: Tag v<version>
