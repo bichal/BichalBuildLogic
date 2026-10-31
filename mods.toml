@@ -30,3 +30,6 @@ token = "PANZER_SYNC_TOKEN"
 [mods.bplb]
 repo = "bichal/BetterPlayerLocatorBar"
 folder = "BetterPlayerLocatorBar"
+
+[mods.worldcard]
+repo = "bichal/WorldCard"
