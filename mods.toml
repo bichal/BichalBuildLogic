@@ -33,3 +33,6 @@ folder = "BetterPlayerLocatorBar"
 
 [mods.worldcard]
 repo = "bichal/WorldCard"
+
+[mods.tenuis]
+repo = "bichal/Tenuis"
