@@ -36,3 +36,11 @@ repo = "bichal/WorldCard"
 
 [mods.tenuis]
 repo = "bichal/Tenuis"
+
+[mods.stasis]
+repo = "bichal/StasisAPI"
+private = true
+
+[mods.retainui]
+repo = "bichal/RetainUI"
+private = true
