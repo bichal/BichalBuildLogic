@@ -19,7 +19,7 @@ RUNNERS = {
     "windows-x86_64": "windows-latest",
     "windows-aarch64": "windows-11-arm",
     "macos-x86_64": "macos-15-intel",
-    "macos-aarch64": "macos-14",
+    "macos-aarch64": "macos-15",
 }
 OPERATING_SYSTEMS = ("windows", "linux", "macos")
 
