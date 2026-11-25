@@ -610,8 +610,21 @@ def publish_github(plan: dict, dry: bool, log, out: Path) -> None:
     sums.write_text("".join(f"{sha256(Path(a))}  {Path(a).name}\n" for a in assets), encoding="utf-8")
     assets.append(str(sums))
     title = f"{plan['mod']['name']} {plan['mod']['version']}"
-    exists = subprocess.run(["gh", "release", "view", tag], capture_output=True).returncode == 0 if not dry else False
+    view = subprocess.run(["gh", "release", "view", tag, "--json", "name,body"], capture_output=True, text=True) \
+        if not dry else None
+    exists = view is not None and view.returncode == 0
     if exists:
+        # A release drafted by hand on GitHub (often to create the tag) keeps what it was given, but an empty
+        # title or description is filled in, so it does not go out with only the assets.
+        current = json.loads(view.stdout or "{}")
+        fill = []
+        if not (current.get("name") or "").strip():
+            fill += ["--title", title]
+        if not (current.get("body") or "").strip():
+            fill += ["--notes-file", str(notes_file)]
+        if fill:
+            log(f"github: gh release edit {tag} (fill empty {' and '.join(a[2:] for a in fill[::2])})")
+            subprocess.run(["gh", "release", "edit", tag, *fill], check=True)
         cmd = ["gh", "release", "upload", tag, "--clobber", *assets]
     else:
         cmd = ["gh", "release", "create", tag, "--title", title, "--notes-file", str(notes_file), "--verify-tag", *assets]

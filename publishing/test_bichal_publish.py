@@ -234,6 +234,29 @@ class Plan(unittest.TestCase):
         self.assertTrue((out / "preview.html").exists())
         self.assertIn("modrinth: create 1.2.0 1.21–1.21.1", (out / "publish.log").read_text())
 
+    def test_existing_release_gets_empty_title_and_notes(self):
+        out = Path(self.tmp.name) / "out-gh"
+        out.mkdir()
+        calls = []
+
+        class Done:
+            def __init__(self, stdout=""):
+                self.returncode, self.stdout = 0, stdout
+
+        def run(cmd, **kwargs):
+            calls.append(cmd)
+            return Done(json.dumps({"name": "", "body": "Kept"})) if cmd[2] == "view" else Done()
+
+        saved = pp.subprocess.run
+        pp.subprocess.run = run
+        try:
+            pp.publish_github(self.plan, False, lambda line: None, out)
+        finally:
+            pp.subprocess.run = saved
+        edit = [c for c in calls if c[2] == "edit"]
+        self.assertEqual(edit, [["gh", "release", "edit", "v1.2.0", "--title", "Demo 1.2.0"]])
+        self.assertEqual(calls[-1][:4], ["gh", "release", "upload", "v1.2.0"])
+
     def test_missing_site_token_skips_that_site(self):
         out = Path(self.tmp.name) / "out-real"
         calls = []
