@@ -56,3 +56,11 @@ license = "Apache-2.0"
 copyright = "Copyright 2011-2026 Arm Limited"
 text = "third-party/astcenc.txt"
 bundled_as = "sources compiled into the bundled native library"
+
+[components.basis_universal]
+name = "Basis Universal (bc7f encoder)"
+url = "https://github.com/BinomialLLC/basis_universal"
+license = "Apache-2.0"
+copyright = "Copyright 2016-2026 Binomial LLC"
+text = "third-party/basis_universal.txt"
+bundled_as = "sources compiled into the bundled native library"
