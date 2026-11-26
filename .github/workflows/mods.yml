@@ -64,7 +64,7 @@ jobs:
       mods: ${{ steps.mods.outputs.mods }}
       action: ${{ steps.mods.outputs.action }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: mods
         env:
           ACTION: ${{ inputs.action || 'sync' }}
@@ -108,12 +108,12 @@ jobs:
       matrix:
         mod: ${{ fromJSON(needs.plan.outputs.mods) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           path: bichal-build-logic
       # Private mods can only be read with BICHAL_SYNC_TOKEN; without it they
       # are reported, not failed.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         id: checkout
         continue-on-error: true
         with:
@@ -170,7 +170,7 @@ jobs:
     if: needs.plan.outputs.action == 'token'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Check BICHAL_SYNC_TOKEN (nothing is changed)
         env:
           BICHAL_SYNC_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN }}
@@ -221,10 +221,10 @@ jobs:
       matrix:
         mod: ${{ fromJSON(needs.plan.outputs.mods) }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           path: bichal-build-logic
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ matrix.mod.repo }}
           token: ${{ matrix.mod.token == 'PANZER_SYNC_TOKEN' && secrets.PANZER_SYNC_TOKEN || secrets.BICHAL_SYNC_TOKEN }}

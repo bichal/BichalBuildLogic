@@ -26,15 +26,15 @@ jobs:
     env:
       PUBLISH: bichal-build-logic/publishing/bichal_publish.py
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           path: mod
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
           path: bichal-build-logic
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install --quiet markdown-it-py
@@ -59,7 +59,7 @@ jobs:
           echo "modrinth=$modrinth" >> "$GITHUB_OUTPUT"
           python3 "$PUBLISH" sync --mod mod --out out $([ "$DRY_RUN" = true ] && echo --dry-run)
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: descriptions
           path: out/

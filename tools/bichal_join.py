@@ -260,7 +260,7 @@ def start_client(root: Path, log: Path, fabric: bool = False) -> subprocess.Pope
     jdks = ",".join(k for k in ("JAVA_HOME_21_X64", "JAVA_HOME_25_X64") if k in os.environ)
     command = ["bash", "gradlew", "runClient" if fabric else "runJoin", "--no-daemon", "--console=plain", "--no-watch-fs"]
     if jdks:
-        command.append(f"-Porg.gradle.java.installations.fromEnv={jdks}")
+        command.append(f"-Dorg.gradle.java.installations.fromEnv={jdks}")
     if not os.environ.get("DISPLAY") and shutil.which("xvfb-run"):
         command = ["xvfb-run", "-a", "-s", "-screen 0 1280x720x24", *command]
     return subprocess.Popen(command, cwd=root, env=env, stdout=open(log, "w", encoding="utf-8"),

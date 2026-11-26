@@ -37,13 +37,13 @@ jobs:
       source-deps: ${{ steps.ci.outputs.source-deps }}
       cache-key: ${{ steps.ci.outputs.cache-key }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.mod-repository }}
           token: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref }}
@@ -69,13 +69,13 @@ jobs:
       run:
         working-directory: mod
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.mod-repository }}
           token: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref }}
@@ -124,7 +124,7 @@ jobs:
           GH_TOKEN: ${{ secrets.BICHAL_SYNC_TOKEN || github.token }}
         run: python3 "../$BICHAL" compat run --mod . --build "$BUILD" --work build/compat --summary "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: compat-${{ matrix.build.version }}-logs

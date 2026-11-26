@@ -35,7 +35,7 @@ jobs:
     outputs:
       targets: ${{ steps.plan.outputs.targets }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: plan
         env:
           VERSIONS: ${{ inputs.versions }}
@@ -69,23 +69,23 @@ jobs:
     env:
       VERSION: ${{ matrix.target.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           path: bichal-build-logic
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/Celeris
           ref: ${{ inputs.celeris-ref }}
           path: celeris
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/Velox
           token: ${{ secrets.BICHAL_SYNC_TOKEN }}
           path: velox
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/Tessera
           path: tessera
@@ -173,7 +173,7 @@ jobs:
             --fabric-loader "${{ matrix.target.fabric_loader }}" --fabric-api "${{ matrix.target.fabric_api }}" \
             --scenarios scenarios.json --work join --summary "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: join-${{ matrix.target.version }}-logs

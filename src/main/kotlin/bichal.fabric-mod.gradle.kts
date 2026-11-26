@@ -41,9 +41,11 @@ dependencies {
 // =ALL-UNNAMED does cover them here, unlike under NeoForge.
 afterEvaluate {
     val args = modProps.jvmModules.values.filter { it.addToRuntime }.flatMap { it.jvmRunArgs() }.distinct()
+    val runDirectory = layout.projectDirectory.dir("run")
     loom.runs.configureEach {
-        args.forEach { vmArg(it) }
-        runDir("run")
+        jvmArguments.addAll(args)
+        // A convention, so a mod's own run can still set another directory.
+        this.runDirectory.convention(runDirectory)
     }
 }
 

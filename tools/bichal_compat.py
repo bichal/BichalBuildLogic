@@ -262,7 +262,7 @@ def run_client(mod: Mod, version: str, target: dict, work: Path) -> tuple[bool, 
     jdks = ",".join(k for k in ("JAVA_HOME_21_X64", "JAVA_HOME_25_X64") if k in os.environ)
     command = ["bash", "gradlew", "runCompat", "--no-daemon", "--console=plain", "--no-watch-fs"]
     if jdks:
-        command.append(f"-Porg.gradle.java.installations.fromEnv={jdks}")
+        command.append(f"-Dorg.gradle.java.installations.fromEnv={jdks}")
     if not os.environ.get("DISPLAY") and shutil.which("xvfb-run"):
         command = ["xvfb-run", "-a", "-s", "-screen 0 1280x720x24", *command]
 

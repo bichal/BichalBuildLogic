@@ -31,7 +31,7 @@ jobs:
     outputs:
       targets: ${{ steps.plan.outputs.targets }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - id: plan
         env:
           VERSIONS: ${{ inputs.versions }}
@@ -58,17 +58,17 @@ jobs:
     env:
       VERSION: ${{ matrix.target.version }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           path: bichal-build-logic
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/Celeris
           ref: ${{ inputs.celeris-ref }}
           path: celeris
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/Velox
           ref: ${{ inputs.velox-ref }}
@@ -102,7 +102,7 @@ jobs:
             --mods "$PWD/$celeris" "$PWD/$velox" --items ${{ inputs.items }} \
             --work mspt --jfr --summary "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: mspt-${{ matrix.target.version }}

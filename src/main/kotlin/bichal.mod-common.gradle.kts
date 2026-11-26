@@ -10,6 +10,7 @@ import net.bichal.gradle.BichalModExtension
 import net.bichal.gradle.PlatformJars
 import net.bichal.gradle.PreprocessJvmModuleTask
 import net.bichal.gradle.TomlBlockReader
+import org.gradle.process.CommandLineArgumentProvider
 import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 
 // Everything a mod build shares whatever its loader: the mod properties
@@ -197,6 +198,19 @@ tasks.named("compileTestJava", JavaCompile::class) {
     }
 }
 
+// Code built with --add-modules=jdk.incubator.* uses the incubator on purpose:
+// drop javac's "using incubating module(s)" note. The lint key exists on the
+// JDK 25 compiler, not on 21's, so it is added only there.
+tasks.withType<JavaCompile>().configureEach {
+    val compiler = javaCompiler
+    val args = options.compilerArgs
+    options.compilerArgumentProviders.add(CommandLineArgumentProvider {
+        val incubator = args.any { "jdk.incubator" in it }
+        if (incubator && compiler.get().metadata.languageVersion.asInt() >= 25) listOf("-Xlint:-incubating")
+        else emptyList()
+    })
+}
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     val argsList = mutableListOf<String>().apply {
@@ -206,6 +220,16 @@ tasks.withType<Test>().configureEach {
         }
     }
     jvmArgs(argsList.distinct())
+    // Tests run on the class path: let it call restricted methods (FFM lookups,
+    // System.load of the natives) without the JVM's warning, and on Java 23+ let
+    // the sun.misc.Unsafe fallback backends be tested without its deprecation
+    // warning (the flag does not exist before 23).
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    val launcher = javaLauncher
+    jvmArgumentProviders.add(CommandLineArgumentProvider {
+        if (launcher.get().metadata.languageVersion.asInt() >= 23) listOf("--sun-misc-unsafe-memory-access=allow")
+        else emptyList()
+    })
 }
 
 dependencies {

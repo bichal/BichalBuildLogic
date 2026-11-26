@@ -26,18 +26,18 @@ runs:
           printf '%s\n' $JAVAS
           echo "EOF"
         } >> "$GITHUB_OUTPUT"
-    - uses: actions/setup-java@v5
+    - uses: actions/setup-java@v6
       with:
         distribution: zulu
         java-version: ${{ steps.list.outputs.versions }}
     - shell: bash
       env:
         JAVAS: ${{ inputs.java }}
-      run: echo "GRADLE_JDKS=-Porg.gradle.java.installations.fromEnv=$(printf '%s\n' $JAVAS | sed 's/.*/JAVA_HOME_&_X64/' | paste -sd, -)" >> "$GITHUB_ENV"
+      run: echo "GRADLE_JDKS=-Dorg.gradle.java.installations.fromEnv=$(printf '%s\n' $JAVAS | sed 's/.*/JAVA_HOME_&_X64/' | paste -sd, -)" >> "$GITHUB_ENV"
     # Downloads (Minecraft/NeoForge per version through ModDevGradle's
     # neoformruntime, Loom's Minecraft jars, dependencies, the wrapper's
     # distribution): fetched again only when versions or plugins change.
-    - uses: actions/cache@v4
+    - uses: actions/cache@v6
       with:
         path: |
           ~/.gradle/caches/modules-2
@@ -49,7 +49,7 @@ runs:
     # Task outputs (org.gradle.caching=true in the shared gradle.properties):
     # unchanged versions compile and test from cache. A new entry per run so the
     # cache follows the code; Gradle drops entries unused for a week.
-    - uses: actions/cache@v4
+    - uses: actions/cache@v6
       with:
         path: ~/.gradle/caches/build-cache-1
         key: gradle-build-${{ runner.os }}-${{ inputs.cache-key }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}

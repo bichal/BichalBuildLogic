@@ -56,24 +56,24 @@ jobs:
     env:
       PUBLISH: bichal-build-logic/publishing/bichal_publish.py
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
           token: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
           path: bichal-build-logic
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install --quiet markdown-it-py
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.jars-artifact }}
           path: dist
@@ -95,7 +95,7 @@ jobs:
 
       - name: Upload release preview
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.preview-name }}
           path: out/

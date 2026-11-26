@@ -85,14 +85,14 @@ jobs:
       gradle-versions: ${{ steps.plan.outputs.gradle-versions }}
       cache-key: ${{ steps.plan.outputs.cache-key }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
           token: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
@@ -128,7 +128,7 @@ jobs:
       - name: Cached native builds
         id: natives-cache
         if: steps.plan.outputs.has-natives == 'true' && !startsWith(github.ref, 'refs/tags/')
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: native-out
           key: ${{ steps.plan.outputs.natives-key }}
@@ -147,7 +147,7 @@ jobs:
         shell: bash
         working-directory: mod
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
@@ -155,13 +155,13 @@ jobs:
           path: mod
           persist-credentials: false
       # JNI headers for libraries that need them (JAVA_HOME/include).
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
 
       # The pinned third-party sources of [vendor.*] (nothing to do without any).
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
@@ -207,7 +207,7 @@ jobs:
             ls -l "../out/$f"
           done
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: native-${{ needs.plan.outputs.mod-id }}-${{ matrix.lib }}-${{ matrix.key }}
           path: out/
@@ -224,14 +224,14 @@ jobs:
     steps:
       # settings.gradle.kts includeBuild()s ../bichal-build-logic, so the
       # repositories sit side by side under the workspace.
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: ${{ inputs.mod-repository || github.repository }}
           ref: ${{ inputs.mod-ref }}
           token: ${{ inputs.mod-repository && secrets.BICHAL_SYNC_TOKEN || github.token }}
           path: mod
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
@@ -283,21 +283,21 @@ jobs:
 
       - name: Restore cached native builds
         if: needs.plan.outputs.natives-cached == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: native-out
           key: ${{ needs.plan.outputs.natives-key }}
           fail-on-cache-miss: true
       - name: Download native builds
         if: needs.plan.outputs.has-natives == 'true' && needs.plan.outputs.natives-cached != 'true'
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: native-${{ needs.plan.outputs.mod-id }}-*
           merge-multiple: true
           path: native-out
       - name: Cache native builds
         if: needs.plan.outputs.has-natives == 'true' && needs.plan.outputs.natives-cached != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         continue-on-error: true
         with:
           path: native-out
@@ -362,7 +362,7 @@ jobs:
       - name: Verify jars
         run: python3 "../$BICHAL" ci verify-jars --mod . ${{ needs.plan.outputs.strict-natives == 'true' && '--strict' || '' }}
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ needs.plan.outputs.jars-artifact }}
           path: mod/build/libs/
@@ -379,11 +379,11 @@ jobs:
       run:
         working-directory: mod
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           path: mod
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           repository: bichal/BichalBuildLogic
           ref: ${{ inputs.build-logic-ref || job.workflow_sha }}
@@ -396,7 +396,7 @@ jobs:
           cache-key: ${{ needs.plan.outputs.cache-key }}
       - name: Download native builds
         if: needs.plan.outputs.has-natives == 'true'
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: native-${{ needs.plan.outputs.mod-id }}-*
           merge-multiple: true
