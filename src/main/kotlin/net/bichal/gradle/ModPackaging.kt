@@ -37,6 +37,7 @@ object ModPackaging {
     fun modsTomlProperties(project: Project, props: ModBuildProperties, tables: List<TomlBlockReader.Table>): Map<String, String> =
         buildMap {
             TomlBlockReader.find(tables, "mod")?.entries?.forEach { (key, value) -> put("mod_$key", value) }
+            images(project, tables).forEach { (key, image) -> put("mod_$key", image.jarPath) }
             put("mod_version", props.modVersion)
             val license = TomlBlockReader.find(tables, "legal")?.entries?.get("code")
                 ?: TomlBlockReader.find(tables, "mod")?.entries?.get("license")
@@ -91,8 +92,35 @@ object ModPackaging {
     fun releaseSourcesJar(project: Project): String =
         if (project.tasks.names.contains("remapSourcesJar")) "remapSourcesJar" else "sourcesJar"
 
+    /** An image from the repository packed into the jar: [source] in the repo, [jarPath] in the jar. */
+    data class PackedImage(val source: File, val jarPath: String)
+
+    /** `[mod]` keys that name an image: `icon` (square, the Fabric mod list) and `banner` (wide, NeoForge's mod list). */
+    private val IMAGE_KEYS = listOf("icon", "banner")
+
+    /**
+     * `[mod] icon` and `banner` given as a path in the repository (with a `/`,
+     * e.g. `docs/media/logo.png`): the same file the README and the sites use
+     * is packed as `assets/<mod id>/<key>.png`, so no copy lives under
+     * `src/main/resources`. A bare file name is still a path inside the jar.
+     */
+    fun images(project: Project, tables: List<TomlBlockReader.Table>): Map<String, PackedImage> {
+        val mod = TomlBlockReader.find(tables, "mod")?.entries ?: return emptyMap()
+        val id = mod["id"] ?: return emptyMap()
+        return buildMap {
+            for (key in IMAGE_KEYS) {
+                val path = mod[key]?.trim().orEmpty()
+                if ('/' !in path) continue
+                val source = project.rootDir.resolve(path)
+                if (!source.isFile) throw GradleException("[bichal] [mod] $key = \"$path\": no such file in the repository.")
+                put(key, PackedImage(source, "assets/$id/$key.${source.extension}"))
+            }
+        }
+    }
+
     fun resources(project: Project, props: ModBuildProperties, tables: List<TomlBlockReader.Table>) {
         val legal = legalFiles(project)
+        val images = images(project, tables)
         project.tasks.named("processResources", ProcessResources::class.java) {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             val values = modsTomlProperties(project, props, tables)
@@ -105,6 +133,12 @@ object ModPackaging {
             inputs.property("mixin_java", mixinJava)
             filesMatching("*.mixins.json") { expand(mapOf("java" to mixinJava)) }
             from(legal) { into("META-INF") }
+            images.values.forEach { image ->
+                from(image.source) {
+                    into(image.jarPath.substringBeforeLast('/'))
+                    rename { image.jarPath.substringAfterLast('/') }
+                }
+            }
         }
         project.tasks.named("sourcesJar", Jar::class.java) {
             from(legal) { into("META-INF") }

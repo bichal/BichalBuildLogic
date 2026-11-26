@@ -158,6 +158,10 @@ really its own (runs, extra tasks, publications). The plugin provides the rest:
 NeoForge/Parchment setup, Java toolchains, JVM modules, `neoforge.mods.toml` and mixin
 expansion (`mod_<key>` for every `[mod]` key, `mod_license`, version ranges,
 `<dep>_version_range`), the legal files, natives, per-system jars and `buildAndCollect`.
+`[mod] icon` and `banner` given as repository paths (`docs/media/logo.png`) are packed as
+`assets/<id>/icon.png` and `banner.png`, and `mod_icon` / `mod_banner` point there: the
+square icon goes in `fabric.mod.json`, the wide banner in `logoFile`, and the README uses
+the same files, so no copy lives under `src/main/resources`.
 
 ### Fabric
 

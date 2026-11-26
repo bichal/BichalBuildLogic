@@ -13,6 +13,9 @@ authors = "Bichal"
 description = "{{name}}: describe the mod in one sentence."
 side = "BOTH"
 issues = "https://github.com/{{owner}}/{{repo}}/issues"
+# Images in the repository, packed as assets/<id>/icon.png and banner.png:
+# icon is square (Fabric's mod list), banner is wide (NeoForge's mod list).
+icon = ""
 banner = ""
 
 # Releases and descriptions (bichal-build-logic/publishing). README.md is the
