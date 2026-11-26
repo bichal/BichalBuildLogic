@@ -128,12 +128,6 @@ class Mod:
         return self.config.get("legal", {})
 
     @property
-    def github_repo(self) -> str | None:
-        """Owner/Repo from [mod] issues (https://github.com/Owner/Repo/issues)."""
-        m = re.match(r"https://github\.com/([^/]+/[^/]+)", self.config["mod"].get("issues", ""))
-        return m.group(1) if m else None
-
-    @property
     def available_versions(self) -> list[str]:
         """Every version the mod could build: its explicit list, or its profile
         plus extra_versions, excluded ones included (for trying a port)."""
