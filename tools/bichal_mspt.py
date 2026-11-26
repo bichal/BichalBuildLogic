@@ -20,9 +20,7 @@ Results are printed as a table and written to <work>/mspt.json.
 """
 from __future__ import annotations
 
-import argparse
 import json
-import os
 import random
 import re
 import shutil
@@ -34,7 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from bichal_mod import java_env, java_home  # noqa: E402
-from bichal_join import Server, install_server, put_mods  # noqa: E402
+from bichal_join import Server, install_server, put_mods, server_arguments  # noqa: E402
 
 SPRINT = re.compile(r"Sprint completed with ([\d.,]+) ticks per second, or ([\d.,]+) ms per tick")
 GROUND = -60          # top of the default superflat ground (grass at y = -61)
@@ -233,10 +231,7 @@ def table(results: list[dict], header: str) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    p.add_argument("--minecraft", required=True)
-    p.add_argument("--neoforge", required=True)
-    p.add_argument("--java", type=int, required=True)
+    p = server_arguments(__doc__)
     p.add_argument("--mods", nargs="+", required=True, help="jars for the modded configurations (Celeris, Velox)")
     p.add_argument("--items", nargs="+", type=int, default=[5000, 20000])
     p.add_argument("--idle-ticks", type=int, default=400)

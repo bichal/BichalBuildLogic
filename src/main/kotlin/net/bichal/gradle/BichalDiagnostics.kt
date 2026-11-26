@@ -34,7 +34,7 @@ object BichalDiagnostics {
      * only their `<version>-fabric` node, and need no NeoForge fields.
      */
     fun fabricOnlyVersions(stonecutter: TomlBlockReader.Table?): Set<String> =
-        PlatformJars.parseList(stonecutter?.entries?.get("fabric_only")).toSet()
+        TomlBlockReader.parseList(stonecutter?.entries?.get("fabric_only")).toSet()
 
     class Report(val errors: List<String>, val warnings: List<String>) {
         val hasErrors: Boolean get() = errors.isNotEmpty()

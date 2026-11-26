@@ -236,12 +236,7 @@ def neoforge_releases(metadata_xml: str) -> list[Release]:
 
 
 def fetch_neoforge_metadata(url: str = NEOFORGE_METADATA) -> str:
-    import urllib.request
-    try:
-        with urllib.request.urlopen(url, timeout=30) as response:
-            return response.read().decode("utf-8")
-    except OSError as e:
-        raise BichalError(f"cannot read {url}: {e}") from e
+    return _fetch(url)
 
 
 def neoforge_table(since: str | None = None, metadata_xml: str | None = None) -> list[str]:

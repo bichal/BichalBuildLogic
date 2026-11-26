@@ -381,11 +381,17 @@ def run_scenario(s: dict, args, work: Path) -> tuple[bool, list[str]]:
     return ok, detail
 
 
-def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+def server_arguments(doc: str) -> argparse.ArgumentParser:
+    """A parser with the Minecraft, NeoForge and Java options every server tool needs."""
+    p = argparse.ArgumentParser(description=doc.split("\n\n")[0])
     p.add_argument("--minecraft", required=True)
     p.add_argument("--neoforge", required=True)
     p.add_argument("--java", type=int, required=True)
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    p = server_arguments(__doc__)
     p.add_argument("--neoform", help="NeoForm version for vanilla clients")
     p.add_argument("--fabric-loader", help="Fabric Loader version for Fabric scenarios")
     p.add_argument("--fabric-api", help="Fabric API version for Fabric scenarios")

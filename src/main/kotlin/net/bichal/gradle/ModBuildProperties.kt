@@ -182,7 +182,7 @@ data class ModBuildProperties(
                 tools = ToolVersions.from(tables),
                 jvmModules = jvmModules,
                 natives = NativeLibrarySpec.from(tables),
-                publishPlatforms = PlatformJars.parseList(TomlBlockReader.find(tables, "publish")?.entries?.get("platforms")),
+                publishPlatforms = TomlBlockReader.parseList(TomlBlockReader.find(tables, "publish")?.entries?.get("platforms")),
                 loader = if (fabric) "fabric" else "neoforge",
                 fabricLoaderVersion = if (fabric) req("fabric.loader_version") else "",
                 fabricApiVersion = if (fabric) overrideOrReq("fabric_api_version") else "",
@@ -266,20 +266,19 @@ data class ModBuildProperties(
     /** Reads a mandatory property from Stonecutter for the currently active project. */
     fun req(project: Project, key: String): String {
         val sc = project.extensions.getByType(StonecutterBuildExtension::class.java)
-        return freshProperty(project, key)
-            ?: sc.properties.getOrNull<String>(key)
-            ?: sc.properties.getOrNull<Long>(key)?.toString()
-            ?: sc.properties.getOrNull<Boolean>(key)?.toString()
+        return lookup(project, sc, key)
             ?: error("Property '$key' is missing in 'stonecutter.properties.toml' for active target '${sc.current.version}'.")
     }
 
     /** Reads an optional property from Stonecutter with a default fallback. */
     fun optional(project: Project, key: String, default: String = ""): String {
-        val sc = project.extensions.getByType(StonecutterBuildExtension::class.java)
-        return freshProperty(project, key)
+        return lookup(project, project.extensions.getByType(StonecutterBuildExtension::class.java), key) ?: default
+    }
+
+    /** The fresh value of [key], else Stonecutter's string, integer or boolean for it. */
+    private fun lookup(project: Project, sc: StonecutterBuildExtension, key: String): String? =
+        freshProperty(project, key)
             ?: sc.properties.getOrNull<String>(key)
             ?: sc.properties.getOrNull<Long>(key)?.toString()
             ?: sc.properties.getOrNull<Boolean>(key)?.toString()
-            ?: default
-    }
 }

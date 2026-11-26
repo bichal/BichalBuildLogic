@@ -54,7 +54,7 @@ data class NativeLibrarySpec(
                 .filter { it.path.size == 2 && it.path[0] == "natives" }
                 .associate { table ->
                     val name = table.path[1]
-                    val platforms = parseArray(table.entries["platforms"]).ifEmpty { listOf(NativePlatform.host().classifier) }
+                    val platforms = TomlBlockReader.parseList(table.entries["platforms"]).ifEmpty { listOf(NativePlatform.host().classifier) }
                     val unknown = platforms.filterNot { it in SUPPORTED }
                     require(unknown.isEmpty()) {
                         "[natives.$name] platforms $unknown are not supported; use any of $SUPPORTED"
@@ -70,14 +70,6 @@ data class NativeLibrarySpec(
                             .toMap(),
                     )
                 }
-
-        /** `["a", "b"]` as read raw by [TomlBlockReader]. */
-        private fun parseArray(raw: String?): List<String> {
-            if (raw.isNullOrBlank()) return emptyList()
-            return raw.trim().removePrefix("[").removeSuffix("]").split(',')
-                .map { it.trim().removeSurrounding("\"").removeSurrounding("'") }
-                .filter { it.isNotEmpty() }
-        }
     }
 }
 

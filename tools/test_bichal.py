@@ -1,7 +1,6 @@
 """Offline tests for the bichal tool (python3 -m unittest discover -s tools)."""
 import json
 import os
-import shutil
 import subprocess
 import tempfile
 import textwrap
@@ -109,7 +108,9 @@ class Merge(unittest.TestCase):
         self.assertEqual(nested["o"]["1.0"], {"a": 3})
 
 
-class Sync(unittest.TestCase):
+class ModFixture(unittest.TestCase):
+    """A fresh demo mod per test."""
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = make_mod(Path(self.tmp.name))
@@ -117,6 +118,9 @@ class Sync(unittest.TestCase):
 
     def tearDown(self):
         self.tmp.cleanup()
+
+
+class Sync(ModFixture):
 
     def test_legal_files(self):
         files = Legal(self.mod).files()
@@ -175,14 +179,7 @@ class Sync(unittest.TestCase):
         self.assertEqual(out, 'a\nstonecutter active "26.1"\n')
 
 
-class Ci(unittest.TestCase):
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.root = make_mod(Path(self.tmp.name))
-        self.mod = load_mod(self.root)
-
-    def tearDown(self):
-        self.tmp.cleanup()
+class Ci(ModFixture):
 
     def test_plan(self):
         plan = bichal_ci.plan(self.mod)

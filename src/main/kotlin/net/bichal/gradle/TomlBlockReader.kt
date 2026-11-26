@@ -141,4 +141,12 @@ object TomlBlockReader {
             else -> trimmed
         }
     }
+
+    /** A raw `["a", "b"]` value as its strings (empty when absent or blank). */
+    fun parseList(raw: String?): List<String> {
+        if (raw.isNullOrBlank()) return emptyList()
+        return raw.trim().removePrefix("[").removeSuffix("]").split(',')
+            .map { it.trim().removeSurrounding("\"").removeSurrounding("'") }
+            .filter { it.isNotEmpty() }
+    }
 }

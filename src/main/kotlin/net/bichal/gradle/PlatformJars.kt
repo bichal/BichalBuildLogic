@@ -62,12 +62,4 @@ object PlatformJars {
         }
         project.tasks.matching { it.name == "buildAndCollect" }.configureEach { dependsOn("platformJars") }
     }
-
-    /** `["a", "b"]` as read raw by [TomlBlockReader]. */
-    fun parseList(raw: String?): List<String> {
-        if (raw.isNullOrBlank()) return emptyList()
-        return raw.trim().removePrefix("[").removeSuffix("]").split(',')
-            .map { it.trim().removeSurrounding("\"").removeSurrounding("'") }
-            .filter { it.isNotEmpty() }
-    }
 }

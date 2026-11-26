@@ -72,7 +72,7 @@ class BichalSettingsPlugin : Plugin<Settings> {
         // Stonecutter needs the vcs version registered; when a subset leaves it
         // out, the active version (always registered) stands in for it.
         val vcsVersion = if (configuredVcs in scVersions) configuredVcs else activeVersion(settings) ?: scVersions.first()
-        val branches = PlatformJars.parseList(stonecutterTable.entries["branches"])
+        val branches = TomlBlockReader.parseList(stonecutterTable.entries["branches"])
         val nodes = nodes(settings, stonecutterTable, scVersions)
 
         branches.forEach { settings.include(":$it") }
@@ -102,7 +102,7 @@ class BichalSettingsPlugin : Plugin<Settings> {
      * NeoForge node of the active version always stays: Stonecutter needs it).
      */
     private fun nodes(settings: Settings, stonecutter: TomlBlockReader.Table, versions: List<String>): Map<String, String> {
-        val declared = PlatformJars.parseList(stonecutter.entries["loaders"]).ifEmpty { listOf(NEOFORGE) }
+        val declared = TomlBlockReader.parseList(stonecutter.entries["loaders"]).ifEmpty { listOf(NEOFORGE) }
         val unknown = declared.filterNot { it == NEOFORGE || it == FABRIC }
         if (unknown.isNotEmpty()) error("[bichal.settings] [stonecutter] loaders: unknown $unknown (neoforge, fabric).")
         val requested = settings.startParameter.projectProperties["bichal.loaders"]
@@ -135,7 +135,7 @@ class BichalSettingsPlugin : Plugin<Settings> {
         tables: List<TomlBlockReader.Table>,
         stonecutter: TomlBlockReader.Table,
     ): List<String> {
-        val explicit = PlatformJars.parseList(stonecutter.entries["versions"])
+        val explicit = TomlBlockReader.parseList(stonecutter.entries["versions"])
         val available: List<String>
         val declared: List<String>
         if (explicit.isNotEmpty()) {
@@ -147,10 +147,10 @@ class BichalSettingsPlugin : Plugin<Settings> {
             val profileTable = TomlBlockReader.find(tables, "stonecutter", "profiles", profile)
                 ?: error("[bichal.settings] [stonecutter] profile = \"$profile\" but no " +
                         "[stonecutter.profiles.$profile] exists in the mod's TOML or the common one.")
-            val base = PlatformJars.parseList(profileTable.entries["versions"])
+            val base = TomlBlockReader.parseList(profileTable.entries["versions"])
                 .ifEmpty { error("[bichal.settings] [stonecutter.profiles.$profile] has no 'versions' array.") }
-            val exclude = PlatformJars.parseList(stonecutter.entries["exclude_versions"]).toSet()
-            available = (base + PlatformJars.parseList(stonecutter.entries["extra_versions"])).distinct()
+            val exclude = TomlBlockReader.parseList(stonecutter.entries["exclude_versions"]).toSet()
+            available = (base + TomlBlockReader.parseList(stonecutter.entries["extra_versions"])).distinct()
             declared = available.filterNot { it in exclude }
                 .ifEmpty { error("[bichal.settings] profile \"$profile\" is empty after 'exclude_versions'.") }
         }
